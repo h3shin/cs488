@@ -17,8 +17,15 @@ private:
 
   // The menubar, with all the menus at the top of the window
   Gtk::MenuBar m_menubar;
+
   // Each menu itself
   Gtk::Menu m_menu_app;
+
+  Gtk::Menu m_menu_drawmode;
+  Gtk::Menu m_menu_speed;
+  Gtk::Menu m_menu_buffering;
+  Gtk::RadioButtonGroup m_draw_group;
+  Gtk::RadioButtonGroup m_speed_group;
 
   // The main OpenGL area
   Viewer m_viewer;

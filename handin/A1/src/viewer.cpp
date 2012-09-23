@@ -61,9 +61,58 @@ void Viewer::on_realize()
 
   // Just enable depth testing and set the background colour.
   glEnable(GL_DEPTH_TEST);
-  glClearColor(0.7, 0.7, 1.0, 0.0);
-
+//  glClearColor(0.7, 0.7, 1.0, 0.0)
+  glClearColor(1.0, 1.0, 1.0, 0.0);
   gldrawable->gl_end();
+}
+
+void Viewer::drawCube(float x, float y, float z)
+{
+  glBegin(GL_QUADS);
+
+  //Front
+  glNormal3f(0.0f, 0.0f, 1.0f);
+  glVertex3f(0.0f+x, 0.0f+y, 1.0f+z);
+  glVertex3f(1.0f+x, 0.0f+y, 1.0f+z);
+  glVertex3f(1.0f+x, 1.0f+y, 1.0f+z);
+  glVertex3f(0.0f+x, 1.0f+y, 1.0f+z);
+
+  //Back
+  glNormal3f(0.0f, 0.0f, -1.0f);
+  glVertex3f(0.0f+x, 0.0f+y, 0.0f+z);
+  glVertex3f(1.0f+x, 0.0f+y, 0.0f+z);
+  glVertex3f(1.0f+x, 1.0f+y, 0.0f+z);
+  glVertex3f(0.0f+x, 1.0f+y, 0.0f+z);
+
+  //Left
+  glNormal3f(-1.0f, 0.0f, 0.0f);
+  glVertex3f(0.0f+x, 1.0f+y, 0.0f+z);
+  glVertex3f(0.0f+x, 1.0f+y, 1.0f+z);
+  glVertex3f(0.0f+x, 0.0f+y, 1.0f+z);
+  glVertex3f(0.0f+x, 0.0f+y, 0.0f+z);
+
+  //Right
+  glNormal3f(1.0f, 0.0f, -0.6f);
+  glVertex3f(1.0f+x, 1.0f+y, 0.0f+z);
+  glVertex3f(1.0f+x, 1.0f+y, 1.0f+z);
+  glVertex3f(1.0f+x, 0.0f+y, 1.0f+z);
+  glVertex3f(1.0f+x, 0.0f+y, 0.0f+z);
+
+  //Bottom
+  glNormal3f(0.0f, 1.0f, 0.0f);
+  glVertex3f(0.0f+x, 0.0f+y, 0.0f+z);
+  glVertex3f(0.0f+x, 0.0f+y, 1.0f+z);
+  glVertex3f(1.0f+x, 0.0f+y, 1.0f+z);
+  glVertex3f(1.0f+x, 0.0f+y, 0.0f+z);
+
+  //Top
+  glNormal3f(0.0f, -1.0f, 0.5f);
+  glVertex3f(0.0f+x, 1.0f+y, 0.0f+z);
+  glVertex3f(1.0f+x, 1.0f+y, 0.0f+z);
+  glVertex3f(1.0f+x, 1.0f+y, 1.0f+z);
+  glVertex3f(0.0f+x, 1.0f+y, 1.0f+z);
+
+  glEnd();
 }
 
 bool Viewer::on_expose_event(GdkEventExpose* event)
@@ -90,8 +139,35 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
+
   // Not implemented: set up lighting (if necessary)
 
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_COLOR_MATERIAL);
+  glEnable(GL_NORMALIZE);
+
+  //Add ambient light
+  GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
+  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
+
+/*
+  //Add positioned light
+  GLfloat lightColor0[] = {0.5f, 0.5f, 0.5f, 1.0f}; //Color (0.5, 0.5, 0.5)
+  GLfloat lightPos0[] = {1.0f, 1.0f, 0.0f, 0.0f};
+  GLfloat lightColor_am[] = {0.0f, 0.0f, 0.0f, 1.0f};
+  GLfloat lightColor_dif[] = {1.0f, 1.0f, 1.0f, 1.0f};
+  GLfloat lightColor_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
+  glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
+  glLightfv(GL_LIGHT0, GL_AMBIENT, lightColor_am);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor_dif);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, lightColor_spe);
+  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, lightColor_spe);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, lightColor_am);
+*/
   // Not implemented: scale and rotate the scene
 
   // You'll be drawing unit cubes, so the game will have width
@@ -103,8 +179,8 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   // Not implemented: actually draw the current game state.
   // Here's some test code that draws red triangles at the
   // corners of the game board.
-  glColor3d(1.0, 0.0, 0.0);
-
+/*
+  glColor3d(1.0, 0.0, 0.0);  
   glBegin(GL_TRIANGLES);
   glVertex3d(0.0, 0.0, 0.0);
   glVertex3d(1.0, 0.0, 0.0);
@@ -122,9 +198,13 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   glVertex3d(10.0, 20.0, 0.0);
   glVertex3d(9.0, 20.0, 0.0);
   glEnd();
-
+*/
   // We pushed a matrix onto the PROJECTION stack earlier, we 
   // need to pop it.
+
+  glColor3f(1.0f, 1.0f, 0.0f);
+  glRotatef(0.0, 0.0f, 1.0f, 0.0f);
+  drawCube(0.0,0.0,0.0);
 
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();

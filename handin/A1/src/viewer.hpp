@@ -37,6 +37,8 @@ protected:
   // Called when the mouse moves
   virtual bool on_motion_notify_event(GdkEventMotion* event);
 
+  void drawCube(float x, float y, float z);
+
 private:
 };
 

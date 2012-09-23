@@ -8,17 +8,48 @@ AppWindow::AppWindow()
   // A utility class for constructing things that go into menus, which
   // we'll set up next.
   using Gtk::Menu_Helpers::MenuElem;
+  using Gtk::Menu_Helpers::RadioMenuElem;
+  using Gtk::Menu_Helpers::CheckMenuElem;
   
   // Set up the application menu
   // The slot we use here just causes AppWindow::hide() on this,
   // which shuts down the application.
   m_menu_app.items().push_back(MenuElem("_Quit", Gtk::AccelKey("q"),
     sigc::mem_fun(*this, &AppWindow::hide)));
-  
+
+  m_menu_app.items().push_back(MenuElem("_New Game", Gtk::AccelKey("r"),
+    sigc::mem_fun(*this, &AppWindow::hide))); //TODO: Implement new_game()
+  m_menu_app.items().push_back(MenuElem("_Reset", Gtk::AccelKey("r"),
+    sigc::mem_fun(*this, &AppWindow::hide))); //TODO: hide()
+
+  // Set up the draw mode menu
+  m_menu_drawmode.items().push_back(RadioMenuElem(m_draw_group, "_Wire_frame", Gtk::AccelKey("w"),
+    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+  m_menu_drawmode.items().push_back(RadioMenuElem(m_draw_group, "_Face", Gtk::AccelKey("f"),
+    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+  m_menu_drawmode.items().push_back(RadioMenuElem(m_draw_group, "_Multicoloured", Gtk::AccelKey("m"),
+    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+
+  // Set up the speed mode menu
+  m_menu_speed.items().push_back(RadioMenuElem(m_speed_group, "_Slow", Gtk::AccelKey("1"),
+    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+  m_menu_speed.items().push_back(RadioMenuElem(m_speed_group, "_Medium", Gtk::AccelKey("2"),
+    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+  m_menu_speed.items().push_back(RadioMenuElem(m_speed_group, "_Fast", Gtk::AccelKey("3"),
+    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+
+  // Set up the buffering menu
+  m_menu_buffering.items().push_back(CheckMenuElem("_Double Buffering", Gtk::AccelKey("b"),
+    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
 
   // Set up the menu bar
   m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Application", m_menu_app));
-  
+
+  m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Draw Mode", m_menu_drawmode));
+
+  m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Speed", m_menu_speed));
+  m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Buffering", m_menu_buffering));
+
   // Pack in our widgets
   
   // First add the vertical box as our single "top" widget

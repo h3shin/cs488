@@ -30,6 +30,7 @@ Viewer::Viewer()
              Gdk::BUTTON_PRESS_MASK      | 
              Gdk::BUTTON_RELEASE_MASK    |
              Gdk::VISIBILITY_NOTIFY_MASK);
+  m_colorMode = WIRE_FRAME;
 }
 
 Viewer::~Viewer()
@@ -66,53 +67,132 @@ void Viewer::on_realize()
   gldrawable->gl_end();
 }
 
+void Viewer::drawVertex(int posn, float x, float y, float z)
+{
+  switch(posn)
+  {
+    case 1:
+      glVertex3f(0.0f+x, 1.0f+y, 1.0f+z);
+    break;
+    case 2:
+      glVertex3f(1.0f+x, 1.0f+y, 1.0f+z);
+    break;
+    case 3:
+      glVertex3f(0.0f+x, 0.0f+y, 1.0f+z);
+    break;
+    case 4:
+      glVertex3f(1.0f+x, 0.0f+y, 1.0f+z);
+    break;
+    case 5:
+      glVertex3f(0.0f+x, 1.0f+y, 0.0f+z);
+    break;
+    case 6:
+      glVertex3f(1.0f+x, 1.0f+y, 0.0f+z);
+    break;
+    case 7:
+      glVertex3f(0.0f+x, 0.0f+y, 0.0f+z);
+    break;
+    default: //case 8
+      glVertex3f(1.0f+x, 0.0f+y, 0.0f+z);
+  }
+}
+
 void Viewer::drawCube(float x, float y, float z)
 {
-  glBegin(GL_QUADS);
+  if (m_colorMode == WIRE_FRAME)
+  {
+    glBegin(GL_LINES);
+    drawVertex(1, x, y, z); drawVertex(3, x, y, z);
 
-  //Front
-  glNormal3f(0.0f, 0.0f, 1.0f);
-  glVertex3f(0.0f+x, 0.0f+y, 1.0f+z);
-  glVertex3f(1.0f+x, 0.0f+y, 1.0f+z);
-  glVertex3f(1.0f+x, 1.0f+y, 1.0f+z);
-  glVertex3f(0.0f+x, 1.0f+y, 1.0f+z);
+    drawVertex(2, x, y, z); drawVertex(4, x, y, z);
 
-  //Back
-  glNormal3f(0.0f, 0.0f, -1.0f);
-  glVertex3f(0.0f+x, 0.0f+y, 0.0f+z);
-  glVertex3f(1.0f+x, 0.0f+y, 0.0f+z);
-  glVertex3f(1.0f+x, 1.0f+y, 0.0f+z);
-  glVertex3f(0.0f+x, 1.0f+y, 0.0f+z);
+    drawVertex(6, x, y, z); drawVertex(8, x, y, z);
 
-  //Left
-  glNormal3f(-1.0f, 0.0f, 0.0f);
-  glVertex3f(0.0f+x, 1.0f+y, 0.0f+z);
-  glVertex3f(0.0f+x, 1.0f+y, 1.0f+z);
-  glVertex3f(0.0f+x, 0.0f+y, 1.0f+z);
-  glVertex3f(0.0f+x, 0.0f+y, 0.0f+z);
+    drawVertex(5, x, y, z); drawVertex(7, x, y, z);
 
-  //Right
-  glNormal3f(1.0f, 0.0f, -0.6f);
-  glVertex3f(1.0f+x, 1.0f+y, 0.0f+z);
-  glVertex3f(1.0f+x, 1.0f+y, 1.0f+z);
-  glVertex3f(1.0f+x, 0.0f+y, 1.0f+z);
-  glVertex3f(1.0f+x, 0.0f+y, 0.0f+z);
+    glNormal3f(0.0f, 0.0f, 0.0f);
+    //Front
+    drawVertex(1, x, y, z); drawVertex(2, x, y, z);
+    drawVertex(4, x, y, z); drawVertex(3, x, y, z);
 
-  //Bottom
-  glNormal3f(0.0f, 1.0f, 0.0f);
-  glVertex3f(0.0f+x, 0.0f+y, 0.0f+z);
-  glVertex3f(0.0f+x, 0.0f+y, 1.0f+z);
-  glVertex3f(1.0f+x, 0.0f+y, 1.0f+z);
-  glVertex3f(1.0f+x, 0.0f+y, 0.0f+z);
+    //Back
+    drawVertex(5, x, y, z); drawVertex(6, x, y, z);
+    drawVertex(8, x, y, z); drawVertex(7, x, y, z);
 
-  //Top
-  glNormal3f(0.0f, -1.0f, 0.5f);
-  glVertex3f(0.0f+x, 1.0f+y, 0.0f+z);
-  glVertex3f(1.0f+x, 1.0f+y, 0.0f+z);
-  glVertex3f(1.0f+x, 1.0f+y, 1.0f+z);
-  glVertex3f(0.0f+x, 1.0f+y, 1.0f+z);
+    //Left
+    drawVertex(1, x, y, z); drawVertex(5, x, y, z);
+    drawVertex(7, x, y, z); drawVertex(3, x, y, z);
 
+    //Right
+    drawVertex(6, x, y, z); drawVertex(2, x, y, z);
+    drawVertex(4, x, y, z); drawVertex(8, x, y, z);
+
+    //Bottom
+    drawVertex(7, x, y, z); drawVertex(3, x, y, z);
+    drawVertex(4, x, y, z); drawVertex(8, x, y, z);
+
+    //Top
+    drawVertex(5, x, y, z); drawVertex(1, x, y, z);
+    drawVertex(2, x, y, z); drawVertex(6, x, y, z);
+
+  }
+  else // if (m_colorMode == FACE)  TODO
+  {
+    glBegin(GL_QUADS);
+
+    //Front
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    drawVertex(1, x, y, z);
+    drawVertex(2, x, y, z);
+    drawVertex(4, x, y, z);
+    drawVertex(3, x, y, z);
+
+    //Back
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    drawVertex(5, x, y, z);
+    drawVertex(6, x, y, z);
+    drawVertex(8, x, y, z);
+    drawVertex(7, x, y, z);
+
+    //Left
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    drawVertex(1, x, y, z);
+    drawVertex(5, x, y, z);
+    drawVertex(7, x, y, z);
+    drawVertex(3, x, y, z);
+
+    //Right
+    glNormal3f(1.0f, 0.0f, -0.6f);
+    drawVertex(6, x, y, z);
+    drawVertex(2, x, y, z);
+    drawVertex(4, x, y, z);
+    drawVertex(8, x, y, z);
+
+    //Bottom
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    drawVertex(7, x, y, z);
+    drawVertex(3, x, y, z);
+    drawVertex(4, x, y, z);
+    drawVertex(8, x, y, z);
+
+    //Top
+    glNormal3f(0.0f, -1.0f, 0.5f);
+    drawVertex(5, x, y, z);
+    drawVertex(1, x, y, z);
+    drawVertex(2, x, y, z);
+    drawVertex(6, x, y, z);
+  }
   glEnd();
+}
+
+void Viewer::new_game()
+{
+  m_colorMode = WIRE_FRAME;
+}
+
+void Viewer::reset_game()
+{
+
 }
 
 bool Viewer::on_expose_event(GdkEventExpose* event)
@@ -125,7 +205,6 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
     return false;
 
   // Clear the screen
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Modify the current projection matrix so that we move the 
@@ -151,23 +230,6 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
 
-/*
-  //Add positioned light
-  GLfloat lightColor0[] = {0.5f, 0.5f, 0.5f, 1.0f}; //Color (0.5, 0.5, 0.5)
-  GLfloat lightPos0[] = {1.0f, 1.0f, 0.0f, 0.0f};
-  GLfloat lightColor_am[] = {0.0f, 0.0f, 0.0f, 1.0f};
-  GLfloat lightColor_dif[] = {1.0f, 1.0f, 1.0f, 1.0f};
-  GLfloat lightColor_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
-
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
-  glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
-  glLightfv(GL_LIGHT0, GL_AMBIENT, lightColor_am);
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor_dif);
-  glLightfv(GL_LIGHT0, GL_SPECULAR, lightColor_spe);
-  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, lightColor_spe);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, lightColor_am);
-*/
   // Not implemented: scale and rotate the scene
 
   // You'll be drawing unit cubes, so the game will have width
@@ -179,32 +241,25 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   // Not implemented: actually draw the current game state.
   // Here's some test code that draws red triangles at the
   // corners of the game board.
-/*
-  glColor3d(1.0, 0.0, 0.0);  
-  glBegin(GL_TRIANGLES);
-  glVertex3d(0.0, 0.0, 0.0);
-  glVertex3d(1.0, 0.0, 0.0);
-  glVertex3d(0.0, 1.0, 0.0);
 
-  glVertex3d(9.0, 0.0, 0.0);
-  glVertex3d(10.0, 0.0, 0.0);
-  glVertex3d(10.0, 1.0, 0.0);
-
-  glVertex3d(0.0, 19.0, 0.0);
-  glVertex3d(1.0, 20.0, 0.0);
-  glVertex3d(0.0, 20.0, 0.0);
-
-  glVertex3d(10.0, 19.0, 0.0);
-  glVertex3d(10.0, 20.0, 0.0);
-  glVertex3d(9.0, 20.0, 0.0);
-  glEnd();
-*/
   // We pushed a matrix onto the PROJECTION stack earlier, we 
   // need to pop it.
 
-  glColor3f(1.0f, 1.0f, 0.0f);
-  glRotatef(0.0, 0.0f, 1.0f, 0.0f);
-  drawCube(0.0,0.0,0.0);
+  // Draw wall
+//  m_colorMode = FACE;
+//  glColor3f(0.4f, 0.0f, 0.0f);
+//  glRotatef(-20.0f, 0.0f, 1.0f, 0.0f);
+//  drawCube(0.0,0.0,0.0);
+
+  for ( int i = 0; i < 10; ++i )
+  {
+      drawCube((float)i,0.0,0.0);
+  }
+  for ( int i = 1; i < 20; ++i )
+  {
+      drawCube(0.0,(float)i,0.0);
+      drawCube(9.0,(float)i,0.0);
+  }
 
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
@@ -236,7 +291,7 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
   gluPerspective(40.0, (GLfloat)event->width/(GLfloat)event->height, 0.1, 1000.0);
 
   // Reset to modelview matrix mode
-  
+
   glMatrixMode(GL_MODELVIEW);
 
   gldrawable->gl_end();

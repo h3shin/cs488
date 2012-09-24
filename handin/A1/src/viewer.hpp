@@ -15,6 +15,13 @@ public:
   // directly. Instead call this, which will cause an on_expose_event
   // call when the time is right.
   void invalidate();
+  enum ColorMode {
+    WIRE_FRAME,
+    FACE,
+    MULTICOLOR
+  };
+  void new_game();
+  void reset_game();
   
 protected:
 
@@ -38,8 +45,11 @@ protected:
   virtual bool on_motion_notify_event(GdkEventMotion* event);
 
   void drawCube(float x, float y, float z);
+  void drawVertex(int posn, float x, float y, float z);
 
 private:
+
+  ColorMode m_colorMode;
 };
 
 #endif

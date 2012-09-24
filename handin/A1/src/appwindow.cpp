@@ -17,8 +17,8 @@ AppWindow::AppWindow()
   m_menu_app.items().push_back(MenuElem("_Quit", Gtk::AccelKey("q"),
     sigc::mem_fun(*this, &AppWindow::hide)));
 
-  m_menu_app.items().push_back(MenuElem("_New Game", Gtk::AccelKey("r"),
-    sigc::mem_fun(*this, &AppWindow::hide))); //TODO: Implement new_game()
+  m_menu_app.items().push_back(MenuElem("_New Game", Gtk::AccelKey("n"),
+    sigc::mem_fun(m_viewer, &Viewer::new_game))); //TODO: Implement new_game()
   m_menu_app.items().push_back(MenuElem("_Reset", Gtk::AccelKey("r"),
     sigc::mem_fun(*this, &AppWindow::hide))); //TODO: hide()
 

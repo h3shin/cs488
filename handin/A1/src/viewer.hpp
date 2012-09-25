@@ -20,6 +20,7 @@ public:
     FACE,
     MULTICOLOR
   };
+  void set_color_mode(ColorMode mode) { m_color_mode = mode; invalidate(); }
   void new_game();
   void reset_game();
   
@@ -46,10 +47,15 @@ protected:
 
   void drawCube(float x, float y, float z);
   void drawVertex(int posn, float x, float y, float z);
+  void rotate_by(char axis, float angle);
 
 private:
 
-  ColorMode m_colorMode;
+  ColorMode m_color_mode;
+  float m_button_press;
+  float m_motion_notify;
+  int m_button_number;
+  float m_angle[3];
 };
 
 #endif

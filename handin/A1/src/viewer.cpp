@@ -2,8 +2,11 @@
 #include <iostream>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <algorithm>
 
 #define TO_PI (3.14159265 / 180.0)
+#define SCALE_MAX 1.25
+#define SCALE_MIN 0.5
 
 Viewer::Viewer()
 {
@@ -31,9 +34,12 @@ Viewer::Viewer()
              Gdk::BUTTON3_MOTION_MASK    |
              Gdk::BUTTON_PRESS_MASK      | 
              Gdk::BUTTON_RELEASE_MASK    |
+//             Gdk::KEY_RELEASE_MASK    | //Check
              Gdk::VISIBILITY_NOTIFY_MASK);
   m_color_mode = WIRE_FRAME;
   m_angle[0] = m_angle[1] = m_angle[2] = 0.0;
+  m_shift = false;
+  m_scale = 1.0;
 }
 
 Viewer::~Viewer()
@@ -254,6 +260,8 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
 //  glRotatef(-20.0f, 0.0f, 1.0f, 0.0f);
 //  drawCube(0.0,0.0,0.0);
 
+//  glScalef(0.5f,0.5f,0.5f);
+
   glColor3f(0.4f, 0.0f, 0.0f);
   for ( int i = 0; i < 10; ++i )
   {
@@ -310,7 +318,7 @@ bool Viewer::on_button_press_event(GdkEventButton* event)
   std::cerr << "Stub: y: " << event->y << " pressed" << std::endl;
 
   m_button_number = event->button;
-  m_button_press = event->x;
+  m_button_press_scale = m_button_press_angle = event->x;
   return true;
 }
 
@@ -341,48 +349,73 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
   glLoadIdentity();
 
   glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_NORMALIZE);
 
   //Add ambient light
   GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
-
-  // Not implemented: scale and rotate the scene
+ 
+ // Not implemented: scale and rotate the scene
 
   // You'll be drawing unit cubes, so the game will have width
   // 10 and height 24 (game = 20, stripe = 4).  Let's translate
   // the game so that we can draw it starting at (0,0) but have
   // it appear centered in the window.
   glTranslated(-5.0, -12.0, 0.0);
-  glColor3f(0.4f, 0.0f, 0.0f);
 
-  float angle = m_motion_notify - m_button_press;
+  float howMuch_angle = 0.0;
+  float howMuch_scale = 1.0;
+
+  if ( ! m_shift ) //rotation
+  {
+    howMuch_angle = m_motion_notify - m_button_press_angle;
+  }
+
+  // Rotate
   switch(m_button_number)
   {
     case 1: //rotate around x-axis
-      std::cerr << "rotate: button 1" <<std::endl;
-      glRotatef(angle+m_angle[0], 1.0f, 0.0f, 0.0f);
+      std::cerr << "rotate: button 1" << std::endl;
+      glRotatef(howMuch_angle+m_angle[0], 1.0f, 0.0f, 0.0f);
       glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
       glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
-      m_angle[0] += angle;
+      m_angle[0] += howMuch_angle;
     break;
     case 2: //rotate around y-axis
       std::cerr << "rotate: button 2" <<std::endl;
       glRotatef(m_angle[0], 1.0f, 1.0f, 0.0f);
-      glRotatef(angle+m_angle[1], 0.0f, 1.0f, 0.0f);
+      glRotatef(howMuch_angle+m_angle[1], 0.0f, 1.0f, 0.0f);
       glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
-      m_angle[1] += angle;
+      m_angle[1] += howMuch_angle;
     break;
     default: //rotate around z-axis
       std::cerr << "rotate: button 3" <<std::endl;
       glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
       glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
-      glRotatef(angle+m_angle[2], 0.0f, 0.0f, 1.0f);
-      m_angle[2] += angle;
+      glRotatef(howMuch_angle+m_angle[2], 0.0f, 0.0f, 1.0f);
+      m_angle[2] += howMuch_angle;
   }
 
+  // Scale
+  if ( m_shift && m_button_press_scale > m_motion_notify ) // scale down
+  {
+    howMuch_scale = std::max ( 0.01, 1 - ( m_button_press_scale - m_motion_notify ) / 100.0 );
+    m_scale = ( howMuch_scale * m_scale > SCALE_MIN ? m_scale * howMuch_scale :
+                                          SCALE_MIN );
+  }
+  else if ( m_shift && m_motion_notify != m_button_press_scale )// scale up
+  {
+    howMuch_scale = 1.0 + ( m_motion_notify - m_button_press_scale ) / 50.0;
+    m_scale = ( howMuch_scale * m_scale < SCALE_MAX ? m_scale * howMuch_scale :
+                                          SCALE_MAX );
+  }
+//  glScalef(howMuch_scale, howMuch_scale, howMuch_scale);
+  glScalef(m_scale,m_scale,m_scale);
+
+  m_button_press_angle = m_button_press_scale = m_motion_notify;
+  std::cerr << "final m_scale: " << m_scale << std::endl;
+
+  glColor3f(0.4f, 0.0f, 0.0f);
   for ( int i = 0; i < 10; ++i )
   {
       drawCube((float)i,0.0,0.0);

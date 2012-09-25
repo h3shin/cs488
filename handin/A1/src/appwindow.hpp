@@ -10,6 +10,7 @@ public:
   
 protected:
   virtual bool on_key_press_event( GdkEventKey *ev );
+  virtual bool on_key_release_event( GdkEventKey *ev );
 
 private:
   // A "vertical box" which holds everything in our window

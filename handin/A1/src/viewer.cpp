@@ -34,7 +34,6 @@ Viewer::Viewer()
              Gdk::BUTTON3_MOTION_MASK    |
              Gdk::BUTTON_PRESS_MASK      | 
              Gdk::BUTTON_RELEASE_MASK    |
-//             Gdk::KEY_RELEASE_MASK    | //Check
              Gdk::VISIBILITY_NOTIFY_MASK);
   m_color_mode = WIRE_FRAME;
   m_angle[0] = m_angle[1] = m_angle[2] = 0.0;
@@ -112,11 +111,8 @@ void Viewer::drawCube(float x, float y, float z)
   {
     glBegin(GL_LINES);
     drawVertex(1, x, y, z); drawVertex(3, x, y, z);
-
     drawVertex(2, x, y, z); drawVertex(4, x, y, z);
-
     drawVertex(6, x, y, z); drawVertex(8, x, y, z);
-
     drawVertex(5, x, y, z); drawVertex(7, x, y, z);
 
     glNormal3f(0.0f, 0.0f, 0.0f);
@@ -218,6 +214,8 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   // Not implemented: set up lighting (if necessary)
 
   glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_NORMALIZE);
 
   //Add ambient light
@@ -354,7 +352,7 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
   //Add ambient light
   GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
- 
+
  // Not implemented: scale and rotate the scene
 
   // You'll be drawing unit cubes, so the game will have width
@@ -413,7 +411,6 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
   glScalef(m_scale,m_scale,m_scale);
 
   m_button_press_angle = m_button_press_scale = m_motion_notify;
-  std::cerr << "final m_scale: " << m_scale << std::endl;
 
   glColor3f(0.4f, 0.0f, 0.0f);
   for ( int i = 0; i < 10; ++i )

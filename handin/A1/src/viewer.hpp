@@ -48,14 +48,15 @@ protected:
 
   void drawCube(float x, float y, float z);
   void drawVertex(int posn, float x, float y, float z);
+  bool render_image(bool useData, float data);
 
 private:
 
   ColorMode m_color_mode;
-  float m_button_press_angle;
+  float m_button_press_angle[4]; //[0] not used
   float m_button_press_scale;
-  float m_motion_notify;
-  int m_button_number;
+//  float m_motion_notify;
+  bool m_button_number[4]; //[0] not used
   float m_angle[3];
   bool m_shift;
   float m_scale;

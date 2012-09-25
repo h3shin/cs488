@@ -36,7 +36,9 @@ Viewer::Viewer()
              Gdk::BUTTON_RELEASE_MASK    |
              Gdk::VISIBILITY_NOTIFY_MASK);
   m_color_mode = WIRE_FRAME;
-  m_angle[0] = m_angle[1] = m_angle[2] = 0.0;
+  m_angle[0] = m_angle[1] = m_angle[2] =
+  m_button_press_angle[1] = m_button_press_angle[2] = m_button_press_angle[3] = 0.0;
+  m_button_number[1] = m_button_number[2] = m_button_number[3] = false;
   m_shift = false;
   m_scale = 1.0;
 }
@@ -190,6 +192,7 @@ void Viewer::reset_game()
 
 bool Viewer::on_expose_event(GdkEventExpose* event)
 {
+/*
   Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
 
   if (!gldrawable) return false;
@@ -233,7 +236,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   // Not implemented: actually draw the current game state.
   // Here's some test code that draws red triangles at the
   // corners of the game board.
-/*
+
   glColor3d(1.0, 0.0, 0.0);
   glBegin(GL_TRIANGLES);
   glVertex3d(0.0, 0.0, 0.0);
@@ -249,7 +252,7 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   glVertex3d(10.0, 20.0, 0.0);
   glVertex3d(9.0, 20.0, 0.0);
   glEnd();
-*/
+
   // We pushed a matrix onto the PROJECTION stack earlier, we 
   // need to pop it.
 
@@ -279,8 +282,8 @@ bool Viewer::on_expose_event(GdkEventExpose* event)
   gldrawable->swap_buffers();
 
   gldrawable->gl_end();
-
-  return true;
+*/
+  return render_image(false, 0.0);
 }
 
 bool Viewer::on_configure_event(GdkEventConfigure* event)
@@ -315,21 +318,20 @@ bool Viewer::on_button_press_event(GdkEventButton* event)
   std::cerr << "Stub: x: " << event->x << " pressed" << std::endl;
   std::cerr << "Stub: y: " << event->y << " pressed" << std::endl;
 
-  m_button_number = event->button;
-  m_button_press_scale = m_button_press_angle = event->x;
+  m_button_number[event->button] = true;
+  m_button_press_scale = m_button_press_angle[event->button] = event->x;
   return true;
 }
 
 bool Viewer::on_button_release_event(GdkEventButton* event)
 {
   std::cerr << "Stub: Button " << event->button << " released" << std::endl;
+  m_button_number[event->button] = false;
   return true;
 }
 
-bool Viewer::on_motion_notify_event(GdkEventMotion* event)
+bool Viewer::render_image(bool useData, float data)
 {
-  std::cerr << "Stub: Motion at " << event->x << ", " << event->y << std::endl;
-  m_motion_notify = event->x;
   Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
 
   if (!gldrawable) return false;
@@ -347,6 +349,8 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
   glLoadIdentity();
 
   glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_NORMALIZE);
 
   //Add ambient light
@@ -361,14 +365,49 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
   // it appear centered in the window.
   glTranslated(-5.0, -12.0, 0.0);
 
-  float howMuch_angle = 0.0;
+  float howMuch_angle[4];
+  for ( int i = 1; i < 4; ++i ) howMuch_angle[i] = 0.0;
   float howMuch_scale = 1.0;
 
-  if ( ! m_shift ) //rotation
+  if ( ! m_shift && useData ) //rotation
   {
-    howMuch_angle = m_motion_notify - m_button_press_angle;
+    for ( int i = 1; i < 4; ++i )
+    {
+      if ( m_button_number[i] ) howMuch_angle[i] = data - m_button_press_angle[i];
+    }
+  }
+//  m_button_number[1] ? glRotatef(howMuch_angle[1]+m_angle[0], 1.0f, 0.0f, 0.0f) : glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
+//  m_button_number[2] ? glRotatef(howMuch_angle[2]+m_angle[1], 0.0f, 1.0f, 0.0f) : glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
+//  m_button_number[3] ? glRotatef(howMuch_angle[3]+m_angle[2], 0.0f, 0.0f, 1.0f) : glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
+ 
+ //when useData is off, it still has to rotate based on the previous record
+ //by doing this once, it updates all rotations and howMuch_angle is 0
+  if ( m_button_number[1] || !useData )
+  {
+      std::cerr << "rotate: button 1" << std::endl;
+      glRotatef(howMuch_angle[1]+m_angle[0], 1.0f, 0.0f, 0.0f);
+      glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
+      glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
+      m_angle[0] += howMuch_angle[1];
+  }
+  if ( m_button_number[2] )
+  {
+      std::cerr << "rotate: button 2" <<std::endl;
+      glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
+      glRotatef(howMuch_angle[2]+m_angle[1], 0.0f, 1.0f, 0.0f);
+      glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
+      m_angle[1] += howMuch_angle[2];
+  }
+  if ( m_button_number[3] )
+  {
+      std::cerr << "rotate: button 3" <<std::endl;
+      glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
+      glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
+      glRotatef(howMuch_angle[3]+m_angle[2], 0.0f, 0.0f, 1.0f);
+      m_angle[2] += howMuch_angle[3];
   }
 
+/*
   // Rotate
   switch(m_button_number)
   {
@@ -393,24 +432,30 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
       glRotatef(howMuch_angle+m_angle[2], 0.0f, 0.0f, 1.0f);
       m_angle[2] += howMuch_angle;
   }
-
+*/
   // Scale
-  if ( m_shift && m_button_press_scale > m_motion_notify ) // scale down
+  if ( m_shift && m_button_press_scale > data && useData) // scale down
   {
-    howMuch_scale = std::max ( 0.01, 1 - ( m_button_press_scale - m_motion_notify ) / 100.0 );
+    howMuch_scale = std::max ( 0.01, 1 - ( m_button_press_scale - data ) / 100.0 );
     m_scale = ( howMuch_scale * m_scale > SCALE_MIN ? m_scale * howMuch_scale :
                                           SCALE_MIN );
   }
-  else if ( m_shift && m_motion_notify != m_button_press_scale )// scale up
+  else if ( m_shift && data != m_button_press_scale && useData)// scale up
   {
-    howMuch_scale = 1.0 + ( m_motion_notify - m_button_press_scale ) / 50.0;
+    howMuch_scale = 1.0 + ( data - m_button_press_scale ) / 50.0;
     m_scale = ( howMuch_scale * m_scale < SCALE_MAX ? m_scale * howMuch_scale :
                                           SCALE_MAX );
   }
-//  glScalef(howMuch_scale, howMuch_scale, howMuch_scale);
   glScalef(m_scale,m_scale,m_scale);
 
-  m_button_press_angle = m_button_press_scale = m_motion_notify;
+  if ( useData )
+  {
+    m_button_press_scale = data;
+    for ( int i = 1; i < 4; ++i )
+    {
+      if ( m_button_number[i] ) m_button_press_angle[i] = data;
+    }
+  }
 
   glColor3f(0.4f, 0.0f, 0.0f);
   for ( int i = 0; i < 10; ++i )
@@ -434,4 +479,10 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
   gldrawable->gl_end();
 
   return true;
+}
+
+bool Viewer::on_motion_notify_event(GdkEventMotion* event)
+{
+  std::cerr << "Stub: Motion at " << event->x << ", " << event->y << std::endl;
+  return render_image(true,event->x);
 }

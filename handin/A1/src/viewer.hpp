@@ -53,7 +53,10 @@ protected:
   void drawCube(float x, float y, float z, int cindex);
   void drawVertex(int posn, float x, float y, float z);
   bool render_image(bool useData, float data);
+  void rotate_image(bool useData, float data);
+  void scale_image(bool useData, float data);
   void drawPieces();
+  void drawWall();
   bool timeout_handler();
 
 private:

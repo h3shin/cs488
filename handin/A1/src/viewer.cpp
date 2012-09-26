@@ -46,6 +46,7 @@ Viewer::Viewer()
   m_button_number[1] = m_button_number[2] = m_button_number[3] = false;
   m_shift = false;
   m_scale = 1.0;
+  m_doublebuffer = true;
 
   m_color[0][0] = 1.0, m_color[0][1] = 0.0, m_color[0][2] = 0.0; //red
   m_color[1][0] = 0.0, m_color[1][1] = 1.0, m_color[1][2] = 0.0; //green
@@ -395,10 +396,71 @@ bool Viewer::render_image(bool useData, float data)
   // it appear centered in the window.
   glTranslated(-5.0, -12.0, 0.0);
 
+  rotate_image(useData, data);
+  scale_image(useData, data);
+  drawWall();
+  drawPieces();
+
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+
+  // Swap the contents of the front and back buffers so we see what we
+  // just drew. This should only be done if double buffering is enabled.
+  if ( m_doublebuffer )
+  {
+     gldrawable->swap_buffers();
+  }
+  else
+  {
+    glDrawBuffer(GL_FRONT);
+    glFlush();
+  }
+
+  gldrawable->gl_end();
+
+  return true;
+}
+
+bool Viewer::on_motion_notify_event(GdkEventMotion* event)
+{
+  std::cerr << "Stub: Motion at " << event->x << ", " << event->y << std::endl;
+  return render_image(true,event->x);
+}
+
+void Viewer::drawPieces()
+{
+  int width = m_game->getWidth();
+  int height = m_game->getHeight()+4; //TODO: Make it member variable??
+//  std::cerr << "w: " << width << ", h: " << height << std::endl;
+  for ( int r = 0; r < height; ++r ) {
+    for ( int c = 0; c < width; ++c ) {
+       int cindex = m_game->get(r,c);
+       if ( cindex != -1 )
+       {
+//         std::cerr << "(r,c): (" << r << "," << c << "), colorindex is " << cindex << std::endl; 
+         drawCube((float)c,(float)r,0.0,cindex);
+       }
+    }
+  }
+}
+
+void Viewer::drawWall()
+{
+  for ( int i = 0; i < 12; ++i )
+  {
+      drawCube((float)i-1.0,-1.0,0.0,7);
+  }
+  for ( int i = 1; i < 21; ++i )
+  {
+      drawCube(-1.0,(float)i-1.0,0.0,7);
+      drawCube(10.0,(float)i-1.0,0.0,7);
+  }
+}
+
+void Viewer::rotate_image(bool useData, float data)
+{
   float howMuch_angle[4];
   for ( int i = 1; i < 4; ++i ) howMuch_angle[i] = 0.0;
-  float howMuch_scale = 1.0;
-
   if ( ! m_shift && useData ) //rotation
   {
     for ( int i = 1; i < 4; ++i )
@@ -406,9 +468,6 @@ bool Viewer::render_image(bool useData, float data)
       if ( m_button_number[i] ) howMuch_angle[i] = data - m_button_press_angle[i];
     }
   }
-//  m_button_number[1] ? glRotatef(howMuch_angle[1]+m_angle[0], 1.0f, 0.0f, 0.0f) : glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
-//  m_button_number[2] ? glRotatef(howMuch_angle[2]+m_angle[1], 0.0f, 1.0f, 0.0f) : glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
-//  m_button_number[3] ? glRotatef(howMuch_angle[3]+m_angle[2], 0.0f, 0.0f, 1.0f) : glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
  
  //when useData is off, it still has to rotate based on the previous record
  //by doing this once, it updates all rotations and howMuch_angle is 0
@@ -437,33 +496,11 @@ bool Viewer::render_image(bool useData, float data)
       m_angle[2] += howMuch_angle[3];
   }
 
-/*
-  // Rotate
-  switch(m_button_number)
-  {
-    case 1: //rotate around x-axis
-      std::cerr << "rotate: button 1" << std::endl;
-      glRotatef(howMuch_angle+m_angle[0], 1.0f, 0.0f, 0.0f);
-      glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
-      glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
-      m_angle[0] += howMuch_angle;
-    break;
-    case 2: //rotate around y-axis
-      std::cerr << "rotate: button 2" <<std::endl;
-      glRotatef(m_angle[0], 1.0f, 1.0f, 0.0f);
-      glRotatef(howMuch_angle+m_angle[1], 0.0f, 1.0f, 0.0f);
-      glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
-      m_angle[1] += howMuch_angle;
-    break;
-    default: //rotate around z-axis
-      std::cerr << "rotate: button 3" <<std::endl;
-      glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
-      glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
-      glRotatef(howMuch_angle+m_angle[2], 0.0f, 0.0f, 1.0f);
-      m_angle[2] += howMuch_angle;
-  }
-*/
-  // Scale
+}
+
+void Viewer::scale_image(bool useData, float data)
+{
+  float howMuch_scale = 1.0;
   if ( m_shift && m_button_press_scale > data && useData) // scale down
   {
     howMuch_scale = std::max ( 0.01, 1 - ( m_button_press_scale - data ) / 100.0 );
@@ -484,52 +521,6 @@ bool Viewer::render_image(bool useData, float data)
     for ( int i = 1; i < 4; ++i )
     {
       if ( m_button_number[i] ) m_button_press_angle[i] = data;
-    }
-  }
-
-  // Draw wall
-  for ( int i = 0; i < 12; ++i )
-  {
-      drawCube((float)i-1.0,-1.0,0.0,7);
-  }
-  for ( int i = 1; i < 21; ++i )
-  {
-      drawCube(-1.0,(float)i-1.0,0.0,7);
-      drawCube(10.0,(float)i-1.0,0.0,7);
-  }
-  drawPieces();
-
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-
-  // Swap the contents of the front and back buffers so we see what we
-  // just drew. This should only be done if double buffering is enabled.
-  gldrawable->swap_buffers();
-
-  gldrawable->gl_end();
-
-  return true;
-}
-
-bool Viewer::on_motion_notify_event(GdkEventMotion* event)
-{
-  std::cerr << "Stub: Motion at " << event->x << ", " << event->y << std::endl;
-  return render_image(true,event->x);
-}
-
-void Viewer::drawPieces()
-{
-  int width = m_game->getWidth();
-  int height = m_game->getHeight()+4; //TODO: Make it member variable??
-//  std::cerr << "w: " << width << ", h: " << height << std::endl;
-  for ( int r = 0; r < height; ++r ) {
-    for ( int c = 0; c < width; ++c ) {
-       int cindex = m_game->get(r,c);
-       if ( cindex != -1 )
-       {
-//         std::cerr << "(r,c): (" << r << "," << c << "), colorindex is " << cindex << std::endl; 
-         drawCube((float)c,(float)r,0.0,cindex);
-       }
     }
   }
 }

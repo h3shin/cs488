@@ -34,19 +34,22 @@ AppWindow::AppWindow()
     sigc::bind( color_mode_slot, Viewer::MULTICOLOR))); //TODO
 
   // Set up the speed mode menu
+  sigc::slot1<void, Viewer::SpeedMode> speed_mode_slot =
+      sigc::mem_fun(m_viewer, &Viewer::set_speed_mode);
+
   m_menu_speed.items().push_back(RadioMenuElem(m_speed_group, "_Slow", Gtk::AccelKey("1"),
-    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+    sigc::bind( speed_mode_slot, Viewer::SLOW))); //TODO
   m_menu_speed.items().push_back(RadioMenuElem(m_speed_group, "_Medium", Gtk::AccelKey("2"),
-    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+    sigc::bind( speed_mode_slot, Viewer::MEDIUM))); //TODOx
   m_menu_speed.items().push_back(RadioMenuElem(m_speed_group, "_Fast", Gtk::AccelKey("3"),
-    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+    sigc::bind( speed_mode_slot, Viewer::FAST))); //TODO
 
   // Set up the buffering menu
 
   sigc::slot1<void, int> buffer_mode_slot =
       sigc::mem_fun(m_viewer, &Viewer::set_buffer_mode);
   m_menu_buffering.items().push_back(CheckMenuElem("_Double Buffering", Gtk::AccelKey("b"),
-    sigc::bind(buffer_mode_slot, -1))); //TODO
+    sigc::bind(buffer_mode_slot, -1)));
 
   // Set up the menu bar
   m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Application", m_menu_app));

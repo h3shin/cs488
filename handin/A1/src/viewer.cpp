@@ -37,16 +37,21 @@ Viewer::Viewer()
              Gdk::VISIBILITY_NOTIFY_MASK);
 
   m_game = new Game(10,20);
-  sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
-  Glib::signal_timeout().connect(tslot, 500);
 
   m_color_mode = WIRE_FRAME;
+
   m_angle[0] = m_angle[1] = m_angle[2] =
   m_button_press_angle[1] = m_button_press_angle[2] = m_button_press_angle[3] = 0.0;
   m_button_number[1] = m_button_number[2] = m_button_number[3] = false;
   m_shift = false;
   m_scale = 1.0;
   m_doublebuffer = 1;
+  m_disconnect = false;
+
+  m_speed[SLOW] = 500, m_speed[MEDIUM] = 300, m_speed[FAST] = 150;
+  m_speed_mode = SLOW;
+  sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
+  Glib::signal_timeout().connect(tslot, m_speed[m_speed_mode]);
 
   m_color[0][0] = 1.0, m_color[0][1] = 0.0, m_color[0][2] = 0.0; //red
   m_color[1][0] = 0.0, m_color[1][1] = 1.0, m_color[1][2] = 0.0; //green
@@ -67,12 +72,24 @@ Viewer::~Viewer()
 bool Viewer::timeout_handler()
 {
 //  std::cerr << "tick" << std::endl;
-  if ( m_game->tick() == -1 )
+  if ( m_game->tick() == -1 || m_disconnect )
   {
+    std::cerr << "timeout_handler terminated" << std::endl;
+    m_disconnect = false;
+    sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
+    Glib::signal_timeout().connect(tslot, m_speed[m_speed_mode]);
+    invalidate();
     return false;
   }
   render_image(false, 0.0);
   return true;
+}
+
+void Viewer::set_speed_mode(SpeedMode mode)
+{
+  m_disconnect = true;
+  m_speed_mode = mode;
+  std::cerr << "speed mode: " << m_speed_mode << ", speed: " << m_speed[m_speed_mode] << std::endl;
 }
 
 Game* Viewer::get_game()

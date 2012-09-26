@@ -21,9 +21,15 @@ public:
     FACE,
     MULTICOLOR
   };
+  enum SpeedMode {
+    SLOW,
+    MEDIUM,
+    FAST
+  };
 
   void set_color_mode(ColorMode mode) { m_color_mode = mode; invalidate(); }
   void set_buffer_mode(int mode) { m_doublebuffer *= mode; invalidate(); }
+  void set_speed_mode(SpeedMode mode);
   void shift_set(bool val) { m_shift = val; }
   void new_game();
   void reset_game();
@@ -62,6 +68,7 @@ protected:
 private:
 
   ColorMode m_color_mode;
+  SpeedMode m_speed_mode;
   float m_button_press_angle[4]; //[0] not used
   float m_button_press_scale;
 //  float m_motion_notify;
@@ -73,6 +80,8 @@ private:
 //  std::list<Piece*> m_pieces;
   Game *m_game;
   float m_color[8][3];
+  bool m_disconnect;
+  int m_speed[3];
 };
 
 #endif

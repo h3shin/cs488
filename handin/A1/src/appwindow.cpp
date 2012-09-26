@@ -78,17 +78,37 @@ bool AppWindow::on_key_press_event( GdkEventKey *ev )
   std::cerr << "keyval: " << ev->keyval << std::endl;
         if( ev->keyval == 't' ) {
                 std::cerr << "Hello!" << std::endl;
-                return true;
+//                return true;
         }
         else if ( ev->keyval == GDK_KEY_Shift_L ||
                   ev->keyval == GDK_KEY_Shift_R )
         {
                 m_viewer.shift_set(true);
-                return true;
+        }
+        else if ( ev->keyval == GDK_Left )
+	{
+                m_game->moveLeft();
+        }
+        else if ( ev->keyval == GDK_Up )
+	{
+                m_game->rotateCW();
+        }
+        else if ( ev->keyval == GDK_Right )
+	{
+                m_game->moveRight();
+        }
+        else if ( ev->keyval == GDK_Down)
+	{
+                m_game->rotateCCW();
+        }
+        else if ( ev->keyval == GDK_space )
+	{
+                m_game->drop();
         }
         else {
                 return Gtk::Window::on_key_press_event( ev );
         }
+        return true;
 }
 
 bool AppWindow::on_key_release_event( GdkEventKey *ev )

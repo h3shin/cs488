@@ -15,6 +15,7 @@
 #include <algorithm>
 
 #include "game.hpp"
+#include <iostream>
 
 static const Piece PIECES[] = {
   Piece(
@@ -155,6 +156,7 @@ Game::Game(int width, int height)
 
   board_ = new int[ sz ];
   std::fill(board_, board_ + sz, -1);
+  srand ( time(NULL) );
   generateNewPiece();
 }
 
@@ -281,7 +283,9 @@ void Game::placePiece(const Piece& p, int x, int y)
 	
 void Game::generateNewPiece() 
 {
+//  std::cerr << "generateNewPiece" << std::endl;
   piece_ = PIECES[ rand() % 7 ];
+
 
   int xleft = (board_width_-3) / 2;
 

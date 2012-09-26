@@ -54,6 +54,7 @@ protected:
   void drawVertex(int posn, float x, float y, float z);
   bool render_image(bool useData, float data);
   void drawPieces();
+  bool timeout_handler();
 
 private:
 
@@ -66,7 +67,7 @@ private:
   bool m_shift;
   float m_scale;
   bool m_doublebuffer;
-  std::list<Piece*> m_pieces;
+//  std::list<Piece*> m_pieces;
   Game *m_game;
   float m_color[8][3];
 };

@@ -36,8 +36,9 @@ Viewer::Viewer()
              Gdk::BUTTON_RELEASE_MASK    |
              Gdk::VISIBILITY_NOTIFY_MASK);
 
-  Game aGame ( 10, 20 );
-  m_game = &aGame;
+  m_game = new Game(10,20);
+  sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
+  Glib::signal_timeout().connect(tslot, 500);
 
   m_color_mode = WIRE_FRAME;
   m_angle[0] = m_angle[1] = m_angle[2] =
@@ -59,6 +60,18 @@ Viewer::Viewer()
 Viewer::~Viewer()
 {
   // Nothing to do here right now.
+  delete m_game;
+}
+
+bool Viewer::timeout_handler()
+{
+//  std::cerr << "tick" << std::endl;
+  if ( m_game->tick() == -1 )
+  {
+    return false;
+  }
+  render_image(false, 0.0);
+  return true;
 }
 
 Game* Viewer::get_game()
@@ -474,16 +487,16 @@ bool Viewer::render_image(bool useData, float data)
     }
   }
 
-  for ( int i = 0; i < 10; ++i )
+  // Draw wall
+  for ( int i = 0; i < 12; ++i )
   {
-      drawCube((float)i,0.0,0.0,7);
+      drawCube((float)i-1.0,-1.0,0.0,7);
   }
-  for ( int i = 1; i < 20; ++i )
+  for ( int i = 1; i < 21; ++i )
   {
-      drawCube(0.0,(float)i,0.0,7);
-      drawCube(9.0,(float)i,0.0,7);
+      drawCube(-1.0,(float)i-1.0,0.0,7);
+      drawCube(10.0,(float)i-1.0,0.0,7);
   }
-  //TODO: Redraw all the "pieces"
   drawPieces();
 
   glMatrixMode(GL_PROJECTION);
@@ -506,13 +519,16 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
 
 void Viewer::drawPieces()
 {
-  int width = (*m_game).getWidth();
-  int height = (*m_game).getHeight();
+  int width = m_game->getWidth();
+  int height = m_game->getHeight()+4; //TODO: Make it member variable??
+//  std::cerr << "w: " << width << ", h: " << height << std::endl;
   for ( int r = 0; r < height; ++r ) {
     for ( int c = 0; c < width; ++c ) {
-       if ( (*m_game).get(r,c) != -1 )
+       int cindex = m_game->get(r,c);
+       if ( cindex != -1 )
        {
-         
+//         std::cerr << "(r,c): (" << r << "," << c << "), colorindex is " << cindex << std::endl; 
+         drawCube((float)c,(float)r,0.0,cindex);
        }
     }
   }

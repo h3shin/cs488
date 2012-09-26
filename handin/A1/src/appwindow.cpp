@@ -20,7 +20,7 @@ AppWindow::AppWindow()
   m_menu_app.items().push_back(MenuElem("_New Game", Gtk::AccelKey("n"),
     sigc::mem_fun(m_viewer, &Viewer::new_game))); //TODO: Implement new_game()
   m_menu_app.items().push_back(MenuElem("_Reset", Gtk::AccelKey("r"),
-    sigc::mem_fun(*this, &AppWindow::hide))); //TODO: hide()
+    sigc::mem_fun(m_viewer, &Viewer::reset_game))); //TODO: hide()
 
   // Set up the draw mode menu
   sigc::slot1<void, Viewer::ColorMode> color_mode_slot =

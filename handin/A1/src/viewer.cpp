@@ -70,7 +70,6 @@ Viewer::Viewer()
   m_color[5][0] = 0.529, m_color[5][1] = 0.808, m_color[5][2] = 0.980; //light skyblue
   m_color[6][0] = 0.118, m_color[6][1] = 0.565, m_color[6][2] = 1.0; //dodgerblue
   m_color[7][0] = 0.627, m_color[7][1] = 0.322, m_color[7][2] = 0.176; //sienna
-
 }
 
 Viewer::~Viewer()
@@ -99,7 +98,7 @@ void Viewer::set_speed_mode(SpeedMode mode)
 {
   m_disconnect = true;
   m_speed_mode = mode;
-  std::cerr << "speed mode: " << m_speed_mode << ", speed: " << m_speed[m_speed_mode] << std::endl;
+//  std::cerr << "speed mode: " << m_speed_mode << ", speed: " << m_speed[m_speed_mode] << std::endl;
 }
 
 Game* Viewer::get_game()
@@ -130,8 +129,8 @@ void Viewer::on_realize()
 
   // Just enable depth testing and set the background colour.
   glEnable(GL_DEPTH_TEST);
-  glClearColor(0.7, 0.7, 1.0, 0.0);
-//  glClearColor(1.0, 1.0, 1.0, 0.0);
+//  glClearColor(0.7, 0.7, 1.0, 0.0);
+  glClearColor(1.0, 1.0, 1.0, 0.0);
   gldrawable->gl_end();
 }
 
@@ -291,12 +290,17 @@ void Viewer::drawCube(float x, float y, float z, int cindex)
 
 void Viewer::new_game()
 {
-  m_color_mode = WIRE_FRAME;
+  m_game->reset();
+  invalidate();
 }
 
 void Viewer::reset_game()
 {
-
+  m_angle[0] = m_angle[1] = m_angle[2] =
+  m_button_press_angle[1] = m_button_press_angle[2] = m_button_press_angle[3] = 0.0;
+  m_button_number[1] = m_button_number[2] = m_button_number[3] = false;
+  m_shift = false;
+  m_scale = 1.0;
 }
 
 bool Viewer::on_expose_event(GdkEventExpose* event)

@@ -52,7 +52,7 @@ Viewer::Viewer()
   m_speed_mode = SLOW;
   sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
   Glib::signal_timeout().connect(tslot, m_speed[m_speed_mode]);
-
+/*
   m_color[0][0] = 1.0, m_color[0][1] = 0.0, m_color[0][2] = 0.0; //red
   m_color[1][0] = 0.0, m_color[1][1] = 1.0, m_color[1][2] = 0.0; //green
   m_color[2][0] = 0.0, m_color[2][1] = 0.0, m_color[2][2] = 1.0; //blue
@@ -61,6 +61,16 @@ Viewer::Viewer()
   m_color[5][0] = 0.4, m_color[5][1] = 0.0, m_color[5][2] = 0.4; //purple
   m_color[6][0] = 1.0, m_color[6][1] = 1.0, m_color[6][2] = 0.0; //yellow
   m_color[7][0] = 0.2, m_color[7][1] = 0.0, m_color[7][2] = 0.0; //brown
+*/
+  m_color[0][0] = 0.941, m_color[0][1] = 0.502, m_color[0][2] = 0.502; //light coral
+  m_color[1][0] = 1.0, m_color[1][1] = 0.412, m_color[1][2] = 0.706; //hot pink
+  m_color[2][0] = 0.863, m_color[2][1] = 0.078, m_color[2][2] = 0.235; //crimson
+  m_color[3][0] = 1.0, m_color[3][1] = 0.647, m_color[3][2] = 0.0; //orange
+  m_color[4][0] = 0.42, m_color[4][1] = 0.557, m_color[4][2] = 0.137; //olive drap
+  m_color[5][0] = 0.529, m_color[5][1] = 0.808, m_color[5][2] = 0.980; //light skyblue
+  m_color[6][0] = 0.118, m_color[6][1] = 0.565, m_color[6][2] = 1.0; //dodgerblue
+  m_color[7][0] = 0.627, m_color[7][1] = 0.322, m_color[7][2] = 0.176; //sienna
+
 }
 
 Viewer::~Viewer()
@@ -158,14 +168,14 @@ void Viewer::drawVertex(int posn, float x, float y, float z)
 
 void Viewer::drawCube(float x, float y, float z, int cindex)
 {
-    glColor3f(m_color[cindex][0], m_color[cindex][1], m_color[cindex][2]);
     glBegin(GL_LINES);
+    glNormal3f(0.0f, 0.0f, 0.0f);
+
     drawVertex(1, x, y, z); drawVertex(3, x, y, z);
     drawVertex(2, x, y, z); drawVertex(4, x, y, z);
     drawVertex(6, x, y, z); drawVertex(8, x, y, z);
     drawVertex(5, x, y, z); drawVertex(7, x, y, z);
 
-    glNormal3f(0.0f, 0.0f, 0.0f);
     //Front
     drawVertex(1, x, y, z); drawVertex(2, x, y, z);
     drawVertex(4, x, y, z); drawVertex(3, x, y, z);
@@ -191,39 +201,90 @@ void Viewer::drawCube(float x, float y, float z, int cindex)
     drawVertex(2, x, y, z); drawVertex(6, x, y, z);
     glEnd();
 
- if (m_color_mode == FACE) 
-  {
-    glBegin(GL_QUADS);
+    if ( m_color_mode != WIRE_FRAME )
+    {
+      if ( m_color_mode == FACE )
+      {
+        glColor3f(m_color[cindex][0], m_color[cindex][1], m_color[cindex][2]);
+      }
 
-    //Front
-    glNormal3f(0.0f, 0.0f, 1.0f);
-    drawVertex(1, x, y, z); drawVertex(2, x, y, z);
-    drawVertex(4, x, y, z); drawVertex(3, x, y, z);
+      glBegin(GL_QUADS);
 
-    //Back
-    glNormal3f(0.0f, 0.0f, -1.0f);
-    drawVertex(5, x, y, z); drawVertex(6, x, y, z);
-    drawVertex(8, x, y, z); drawVertex(7, x, y, z);
+      std::vector<int> colorVector;
+      std::vector<int>::iterator it;
+      if ( m_color_mode == CHRISTMAS )
+      {
+        for(int i = 0; i < 7; ++i) colorVector.push_back(i);
+        std::random_shuffle ( colorVector.begin(), colorVector.end() );
+        it = colorVector.begin();
+      }
+      //Front
+      if ( m_color_mode == CHRISTMAS ) glColor3f(m_color[*it][0], m_color[*it][1], m_color[*it++][2]);
+      else if ( m_color_mode == MULTICOLOR )
+      {
+        int newindex = (cindex+1)%8;
+        glColor3f(m_color[newindex][0], m_color[newindex][1], m_color[newindex][2]);
+      }
+      glNormal3f(0.0f, 0.0f, 1.0f);
+      drawVertex(1, x, y, z); drawVertex(2, x, y, z);
+      drawVertex(4, x, y, z); drawVertex(3, x, y, z);
 
-    //Left
-    glNormal3f(-1.0f, 0.0f, 0.0f);
-    drawVertex(1, x, y, z); drawVertex(5, x, y, z);
-    drawVertex(7, x, y, z); drawVertex(3, x, y, z);
+      //Back
+      if ( m_color_mode == CHRISTMAS ) glColor3f(m_color[*it][0], m_color[*it][1], m_color[*it++][2]);
+      else if ( m_color_mode == MULTICOLOR )
+      {
+        int newindex = (cindex+2)%8;
+        glColor3f(m_color[newindex][0], m_color[newindex][1], m_color[newindex][2]);
+      }
 
-    //Right
-    glNormal3f(1.0f, 0.0f, -0.6f);
-    drawVertex(6, x, y, z); drawVertex(2, x, y, z);
-    drawVertex(4, x, y, z); drawVertex(8, x, y, z);
+      glNormal3f(0.0f, 0.0f, -1.0f);
+      drawVertex(5, x, y, z); drawVertex(6, x, y, z);
+      drawVertex(8, x, y, z); drawVertex(7, x, y, z);
 
-    //Bottom
-    glNormal3f(0.0f, 1.0f, 0.0f);
-    drawVertex(7, x, y, z); drawVertex(3, x, y, z);
-    drawVertex(4, x, y, z); drawVertex(8, x, y, z);
+      //Left
+      if ( m_color_mode == CHRISTMAS ) glColor3f(m_color[*it][0], m_color[*it][1], m_color[*it++][2]);
+      else if ( m_color_mode == MULTICOLOR )
+      {
+        int newindex = (cindex+3)%8;
+        glColor3f(m_color[newindex][0], m_color[newindex][1], m_color[newindex][2]);
+      }
 
-    //Top
-    glNormal3f(0.0f, -1.0f, 0.5f);
-    drawVertex(5, x, y, z); drawVertex(1, x, y, z);
-    drawVertex(2, x, y, z); drawVertex(6, x, y, z);
+      glNormal3f(-1.0f, 0.0f, 0.0f);
+      drawVertex(1, x, y, z); drawVertex(5, x, y, z);
+      drawVertex(7, x, y, z); drawVertex(3, x, y, z);
+
+      //Right
+      if ( m_color_mode == CHRISTMAS ) glColor3f(m_color[*it][0], m_color[*it][1], m_color[*it++][2]);
+      else if ( m_color_mode == MULTICOLOR )
+      {
+        int newindex = (cindex+4)%8;
+        glColor3f(m_color[newindex][0], m_color[newindex][1], m_color[newindex][2]);
+      }
+      glNormal3f(1.0f, 0.0f, -0.6f);
+      drawVertex(6, x, y, z); drawVertex(2, x, y, z);
+      drawVertex(4, x, y, z); drawVertex(8, x, y, z);
+
+      //Bottom
+      if ( m_color_mode == CHRISTMAS ) glColor3f(m_color[*it][0], m_color[*it][1], m_color[*it++][2]);
+      else if ( m_color_mode == MULTICOLOR )
+      {
+        int newindex = (cindex+5)%8;
+        glColor3f(m_color[newindex][0], m_color[newindex][1], m_color[newindex][2]);
+      }
+      glNormal3f(0.0f, 1.0f, 0.0f);
+      drawVertex(7, x, y, z); drawVertex(3, x, y, z);
+      drawVertex(4, x, y, z); drawVertex(8, x, y, z);
+
+      //Top
+      if ( m_color_mode == CHRISTMAS ) glColor3f(m_color[*it][0], m_color[*it][1], m_color[*it++][2]);
+      else if ( m_color_mode == MULTICOLOR )
+      {
+        int newindex = (cindex+6)%8;
+        glColor3f(m_color[newindex][0], m_color[newindex][1], m_color[newindex][2]);
+      }
+      glNormal3f(0.0f, -1.0f, 0.5f);
+      drawVertex(5, x, y, z); drawVertex(1, x, y, z);
+      drawVertex(2, x, y, z); drawVertex(6, x, y, z);
   }
   glEnd();
 }
@@ -498,7 +559,13 @@ void Viewer::rotate_image(bool useData, float data)
  
  //when useData is off, it still has to rotate based on the previous record
  //by doing this once, it updates all rotations and howMuch_angle is 0
-  if ( m_button_number[1] || !useData )
+  if ( !useData )
+  {
+      glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
+      glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
+      glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
+  }
+  if ( m_button_number[1] )
   {
       std::cerr << "rotate: button 1" << std::endl;
       glRotatef(howMuch_angle[1]+m_angle[0], 1.0f, 0.0f, 0.0f);

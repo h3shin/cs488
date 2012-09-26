@@ -19,7 +19,8 @@ public:
   enum ColorMode {
     WIRE_FRAME,
     FACE,
-    MULTICOLOR
+    MULTICOLOR,
+    CHRISTMAS
   };
   enum SpeedMode {
     SLOW,
@@ -82,6 +83,7 @@ private:
   float m_color[8][3];
   bool m_disconnect;
   int m_speed[3];
+  //  int m_multicolor[8][5];
 };
 
 #endif

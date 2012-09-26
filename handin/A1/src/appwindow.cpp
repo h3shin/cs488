@@ -31,18 +31,20 @@ AppWindow::AppWindow()
   m_menu_drawmode.items().push_back(RadioMenuElem(m_draw_group, "_Face", Gtk::AccelKey("f"),
     sigc::bind( color_mode_slot, Viewer::FACE)));
   m_menu_drawmode.items().push_back(RadioMenuElem(m_draw_group, "_Multicoloured", Gtk::AccelKey("m"),
-    sigc::bind( color_mode_slot, Viewer::MULTICOLOR))); //TODO
+    sigc::bind( color_mode_slot, Viewer::MULTICOLOR)));
+  m_menu_drawmode.items().push_back(RadioMenuElem(m_draw_group, "_Christmas", Gtk::AccelKey("c"),
+    sigc::bind( color_mode_slot, Viewer::CHRISTMAS)));
 
   // Set up the speed mode menu
   sigc::slot1<void, Viewer::SpeedMode> speed_mode_slot =
       sigc::mem_fun(m_viewer, &Viewer::set_speed_mode);
 
   m_menu_speed.items().push_back(RadioMenuElem(m_speed_group, "_Slow", Gtk::AccelKey("1"),
-    sigc::bind( speed_mode_slot, Viewer::SLOW))); //TODO
+    sigc::bind( speed_mode_slot, Viewer::SLOW)));
   m_menu_speed.items().push_back(RadioMenuElem(m_speed_group, "_Medium", Gtk::AccelKey("2"),
-    sigc::bind( speed_mode_slot, Viewer::MEDIUM))); //TODOx
+    sigc::bind( speed_mode_slot, Viewer::MEDIUM)));
   m_menu_speed.items().push_back(RadioMenuElem(m_speed_group, "_Fast", Gtk::AccelKey("3"),
-    sigc::bind( speed_mode_slot, Viewer::FAST))); //TODO
+    sigc::bind( speed_mode_slot, Viewer::FAST)));
 
   // Set up the buffering menu
 

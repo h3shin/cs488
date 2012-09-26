@@ -47,11 +47,15 @@ Viewer::Viewer()
   m_scale = 1.0;
   m_doublebuffer = 1;
   m_disconnect = false;
+  m_gameover = false;
 
   m_speed[SLOW] = 500, m_speed[MEDIUM] = 300, m_speed[FAST] = 150;
   m_speed_mode = SLOW;
-  sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
-  Glib::signal_timeout().connect(tslot, m_speed[m_speed_mode]);
+  sigc::slot<bool> tickslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
+  Glib::signal_timeout().connect(tickslot, m_speed[m_speed_mode]);
+  sigc::slot<bool> renderslot = sigc::mem_fun(*this, &Viewer::render_handler);
+  Glib::signal_timeout().connect(renderslot, 10);
+
 /*
   m_color[0][0] = 1.0, m_color[0][1] = 0.0, m_color[0][2] = 0.0; //red
   m_color[1][0] = 0.0, m_color[1][1] = 1.0, m_color[1][2] = 0.0; //green
@@ -83,17 +87,26 @@ bool Viewer::timeout_handler()
 //  std::cerr << "tick" << std::endl;
   if ( m_game->tick() == -1 || m_disconnect )
   {
+    m_gameover = true;
     std::cerr << "timeout_handler terminated" << std::endl;
+    return false;
+  }
+  if ( m_disconnect )
+  {
     m_disconnect = false;
     sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
     Glib::signal_timeout().connect(tslot, m_speed[m_speed_mode]);
     invalidate();
-    return false;
   }
   render_image(false, 0.0);
   return true;
 }
 
+bool Viewer::render_handler()
+{
+  render_image(false, 0.0);
+  return !m_gameover;
+}
 void Viewer::set_speed_mode(SpeedMode mode)
 {
   m_disconnect = true;
@@ -417,7 +430,7 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
   gluPerspective(40.0, (GLfloat)event->width/(GLfloat)event->height, 0.1, 1000.0);
 
   // Reset to modelview matrix mode
-
+  
   glMatrixMode(GL_MODELVIEW);
 
   gldrawable->gl_end();
@@ -431,20 +444,29 @@ bool Viewer::on_button_press_event(GdkEventButton* event)
   std::cerr << "Stub: x: " << event->x << " pressed" << std::endl;
   std::cerr << "Stub: y: " << event->y << " pressed" << std::endl;
 
-  m_button_number[event->button] = true;
-  m_button_press_scale = m_button_press_angle[event->button] = event->x;
+  if ( m_button_number[event->button] )
+  {
+     m_button_number[event->button] = false;
+  }
+  else
+  {
+    m_button_number[event->button] = true;
+    m_button_press_scale = m_button_press_angle[event->button] = event->x;
+  }
   return true;
 }
 
 bool Viewer::on_button_release_event(GdkEventButton* event)
 {
   std::cerr << "Stub: Button " << event->button << " released" << std::endl;
-  m_button_number[event->button] = false;
+  
+//  m_button_number[event->button] = false;
   return true;
 }
 
 bool Viewer::render_image(bool useData, float data)
 {
+  useData = m_useData;
   Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
 
   if (!gldrawable) return false;

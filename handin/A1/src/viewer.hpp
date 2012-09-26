@@ -65,6 +65,7 @@ protected:
   void drawPieces();
   void drawWall();
   bool timeout_handler();
+  bool render_handler();
 
 private:
 
@@ -83,6 +84,9 @@ private:
   float m_color[8][3];
   bool m_disconnect;
   int m_speed[3];
+  int m_rotate_still[4];
+  bool m_gameover;
+  //  bool m_stop_rotating;
   //  int m_multicolor[8][5];
 };
 

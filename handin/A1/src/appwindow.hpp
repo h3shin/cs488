@@ -3,6 +3,7 @@
 
 #include <gtkmm.h>
 #include "viewer.hpp"
+#include "game.hpp"
 
 class AppWindow : public Gtk::Window {
 public:
@@ -30,6 +31,7 @@ private:
 
   // The main OpenGL area
   Viewer m_viewer;
+  Game *m_game;
 };
 
 #endif

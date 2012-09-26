@@ -63,6 +63,7 @@ AppWindow::AppWindow()
   // by default, so it'll take up the rest of the window.
   m_viewer.set_size_request(300, 600);
   m_vbox.pack_start(m_viewer);
+  m_game = m_viewer.get_game();
 
   show_all();
 }
@@ -74,7 +75,7 @@ bool AppWindow::on_key_press_event( GdkEventKey *ev )
 
 	// An example key; delete and replace with the
 	// keys you want to process
-//  std::cerr << "keyval: " << ev->keyval << std::endl;
+  std::cerr << "keyval: " << ev->keyval << std::endl;
         if( ev->keyval == 't' ) {
                 std::cerr << "Hello!" << std::endl;
                 return true;
@@ -93,7 +94,7 @@ bool AppWindow::on_key_press_event( GdkEventKey *ev )
 bool AppWindow::on_key_release_event( GdkEventKey *ev )
 {
         if ( ev->keyval == GDK_KEY_Shift_L ||
-                  ev->keyval == GDK_KEY_Shift_R )
+             ev->keyval == GDK_KEY_Shift_R )
         {
                 m_viewer.shift_set(false);
                 return true;

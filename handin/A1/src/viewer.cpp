@@ -35,17 +35,35 @@ Viewer::Viewer()
              Gdk::BUTTON_PRESS_MASK      | 
              Gdk::BUTTON_RELEASE_MASK    |
              Gdk::VISIBILITY_NOTIFY_MASK);
+
+  Game aGame ( 10, 20 );
+  m_game = &aGame;
+
   m_color_mode = WIRE_FRAME;
   m_angle[0] = m_angle[1] = m_angle[2] =
   m_button_press_angle[1] = m_button_press_angle[2] = m_button_press_angle[3] = 0.0;
   m_button_number[1] = m_button_number[2] = m_button_number[3] = false;
   m_shift = false;
   m_scale = 1.0;
+
+  m_color[0][0] = 1.0, m_color[0][1] = 0.0, m_color[0][2] = 0.0; //red
+  m_color[1][0] = 0.0, m_color[1][1] = 1.0, m_color[1][2] = 0.0; //green
+  m_color[2][0] = 0.0, m_color[2][1] = 0.0, m_color[2][2] = 1.0; //blue
+  m_color[3][0] = 1.0, m_color[3][1] = 0.2, m_color[3][2] = 0.0; //orange
+  m_color[4][0] = 1.0, m_color[4][1] = 0.0, m_color[4][2] = 0.4; //pink
+  m_color[5][0] = 0.4, m_color[5][1] = 0.0, m_color[5][2] = 0.4; //purple
+  m_color[6][0] = 1.0, m_color[6][1] = 1.0, m_color[6][2] = 0.0; //yellow
+  m_color[7][0] = 0.2, m_color[7][1] = 0.0, m_color[7][2] = 0.0; //brown
 }
 
 Viewer::~Viewer()
 {
   // Nothing to do here right now.
+}
+
+Game* Viewer::get_game()
+{
+  return m_game;
 }
 
 void Viewer::invalidate()
@@ -107,8 +125,9 @@ void Viewer::drawVertex(int posn, float x, float y, float z)
   }
 }
 
-void Viewer::drawCube(float x, float y, float z)
+void Viewer::drawCube(float x, float y, float z, int cindex)
 {
+    glColor3f(m_color[cindex][0], m_color[cindex][1], m_color[cindex][2]);
     glBegin(GL_LINES);
     drawVertex(1, x, y, z); drawVertex(3, x, y, z);
     drawVertex(2, x, y, z); drawVertex(4, x, y, z);
@@ -455,17 +474,17 @@ bool Viewer::render_image(bool useData, float data)
     }
   }
 
-  glColor3f(0.4f, 0.0f, 0.0f);
   for ( int i = 0; i < 10; ++i )
   {
-      drawCube((float)i,0.0,0.0);
+      drawCube((float)i,0.0,0.0,7);
   }
   for ( int i = 1; i < 20; ++i )
   {
-      drawCube(0.0,(float)i,0.0);
-      drawCube(9.0,(float)i,0.0);
+      drawCube(0.0,(float)i,0.0,7);
+      drawCube(9.0,(float)i,0.0,7);
   }
   //TODO: Redraw all the "pieces"
+  drawPieces();
 
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
@@ -483,4 +502,18 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
 {
   std::cerr << "Stub: Motion at " << event->x << ", " << event->y << std::endl;
   return render_image(true,event->x);
+}
+
+void Viewer::drawPieces()
+{
+  int width = (*m_game).getWidth();
+  int height = (*m_game).getHeight();
+  for ( int r = 0; r < height; ++r ) {
+    for ( int c = 0; c < width; ++c ) {
+       if ( (*m_game).get(r,c) != -1 )
+       {
+         
+       }
+    }
+  }
 }

@@ -3,6 +3,7 @@
 
 #include <gtkmm.h>
 #include <gtkglmm.h>
+#include "game.hpp"
 
 // The "main" OpenGL widget
 class Viewer : public Gtk::GL::DrawingArea {
@@ -20,12 +21,14 @@ public:
     FACE,
     MULTICOLOR
   };
+
   void set_color_mode(ColorMode mode) { m_color_mode = mode; invalidate(); }
   void set_buffer_mode(bool mode) { m_doublebuffer = mode; }
   void shift_set(bool val) { m_shift = val; }
   void new_game();
   void reset_game();
-  
+  Game* get_game();
+
 protected:
 
   // Events we implement
@@ -47,9 +50,10 @@ protected:
   // Called when the mouse moves
   virtual bool on_motion_notify_event(GdkEventMotion* event);
 
-  void drawCube(float x, float y, float z);
+  void drawCube(float x, float y, float z, int cindex);
   void drawVertex(int posn, float x, float y, float z);
   bool render_image(bool useData, float data);
+  void drawPieces();
 
 private:
 
@@ -62,6 +66,9 @@ private:
   bool m_shift;
   float m_scale;
   bool m_doublebuffer;
+  std::list<Piece*> m_pieces;
+  Game *m_game;
+  float m_color[8][3];
 };
 
 #endif

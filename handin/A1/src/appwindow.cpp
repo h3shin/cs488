@@ -27,9 +27,9 @@ AppWindow::AppWindow()
       sigc::mem_fun(m_viewer, &Viewer::set_color_mode);
 
   m_menu_drawmode.items().push_back(RadioMenuElem(m_draw_group, "_Wire_frame", Gtk::AccelKey("w"),
-    sigc::bind( color_mode_slot, Viewer::WIRE_FRAME))); //TODO
+    sigc::bind( color_mode_slot, Viewer::WIRE_FRAME)));
   m_menu_drawmode.items().push_back(RadioMenuElem(m_draw_group, "_Face", Gtk::AccelKey("f"),
-    sigc::bind( color_mode_slot, Viewer::FACE))); //TODO
+    sigc::bind( color_mode_slot, Viewer::FACE)));
   m_menu_drawmode.items().push_back(RadioMenuElem(m_draw_group, "_Multicoloured", Gtk::AccelKey("m"),
     sigc::bind( color_mode_slot, Viewer::MULTICOLOR))); //TODO
 
@@ -42,8 +42,11 @@ AppWindow::AppWindow()
     sigc::mem_fun(*this, &AppWindow::hide))); //TODO
 
   // Set up the buffering menu
+
+  sigc::slot1<void, int> buffer_mode_slot =
+      sigc::mem_fun(m_viewer, &Viewer::set_buffer_mode);
   m_menu_buffering.items().push_back(CheckMenuElem("_Double Buffering", Gtk::AccelKey("b"),
-    sigc::mem_fun(*this, &AppWindow::hide))); //TODO
+    sigc::bind(buffer_mode_slot, -1))); //TODO
 
   // Set up the menu bar
   m_menubar.items().push_back(Gtk::Menu_Helpers::MenuElem("_Application", m_menu_app));
@@ -78,7 +81,6 @@ bool AppWindow::on_key_press_event( GdkEventKey *ev )
   std::cerr << "keyval: " << ev->keyval << std::endl;
         if( ev->keyval == 't' ) {
                 std::cerr << "Hello!" << std::endl;
-//                return true;
         }
         else if ( ev->keyval == GDK_KEY_Shift_L ||
                   ev->keyval == GDK_KEY_Shift_R )

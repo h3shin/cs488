@@ -23,7 +23,7 @@ public:
   };
 
   void set_color_mode(ColorMode mode) { m_color_mode = mode; invalidate(); }
-  void set_buffer_mode(bool mode) { m_doublebuffer = mode; }
+  void set_buffer_mode(int mode) { m_doublebuffer *= mode; invalidate(); }
   void shift_set(bool val) { m_shift = val; }
   void new_game();
   void reset_game();
@@ -69,7 +69,7 @@ private:
   float m_angle[3];
   bool m_shift;
   float m_scale;
-  bool m_doublebuffer;
+  int m_doublebuffer;
 //  std::list<Piece*> m_pieces;
   Game *m_game;
   float m_color[8][3];

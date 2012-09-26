@@ -46,7 +46,7 @@ Viewer::Viewer()
   m_button_number[1] = m_button_number[2] = m_button_number[3] = false;
   m_shift = false;
   m_scale = 1.0;
-  m_doublebuffer = true;
+  m_doublebuffer = 1;
 
   m_color[0][0] = 1.0, m_color[0][1] = 0.0, m_color[0][2] = 0.0; //red
   m_color[1][0] = 0.0, m_color[1][1] = 1.0, m_color[1][2] = 0.0; //green
@@ -372,6 +372,17 @@ bool Viewer::render_image(bool useData, float data)
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  int buf = m_doublebuffer;
+  std::cerr << buf << std::endl;
+  if ( buf == -1 )
+  {
+    glDrawBuffer(GL_FRONT);
+  }
+  else
+  {
+    glDrawBuffer(GL_BACK);
+  }
+
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glTranslated(0.0, 0.0, -40.0);
@@ -406,13 +417,12 @@ bool Viewer::render_image(bool useData, float data)
 
   // Swap the contents of the front and back buffers so we see what we
   // just drew. This should only be done if double buffering is enabled.
-  if ( m_doublebuffer )
+  if ( buf == 1 )
   {
      gldrawable->swap_buffers();
   }
-  else
+  else // -1
   {
-    glDrawBuffer(GL_FRONT);
     glFlush();
   }
 

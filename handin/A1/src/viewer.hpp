@@ -21,6 +21,7 @@ public:
     MULTICOLOR
   };
   void set_color_mode(ColorMode mode) { m_color_mode = mode; invalidate(); }
+  void set_buffer_mode(bool mode) { m_doublebuffer = mode; }
   void shift_set(bool val) { m_shift = val; }
   void new_game();
   void reset_game();
@@ -60,6 +61,7 @@ private:
   float m_angle[3];
   bool m_shift;
   float m_scale;
+  bool m_doublebuffer;
 };
 
 #endif

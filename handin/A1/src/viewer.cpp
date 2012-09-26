@@ -109,8 +109,6 @@ void Viewer::drawVertex(int posn, float x, float y, float z)
 
 void Viewer::drawCube(float x, float y, float z)
 {
-  if (m_color_mode == WIRE_FRAME)
-  {
     glBegin(GL_LINES);
     drawVertex(1, x, y, z); drawVertex(3, x, y, z);
     drawVertex(2, x, y, z); drawVertex(4, x, y, z);
@@ -141,9 +139,9 @@ void Viewer::drawCube(float x, float y, float z)
     //Top
     drawVertex(5, x, y, z); drawVertex(1, x, y, z);
     drawVertex(2, x, y, z); drawVertex(6, x, y, z);
+    glEnd();
 
-  }
-  else // if (m_color_mode == FACE)  TODO
+ if (m_color_mode == FACE) 
   {
     glBegin(GL_QUADS);
 

@@ -21,7 +21,7 @@ Viewer::Viewer()
                                      Gdk::GL::MODE_DOUBLE);
   if (glconfig == 0) {
     // If we can't get this configuration, die
-    std::cerr << "Unable to setup OpenGL Configuration!" << std::endl;
+    //std::cerr << "Unable to setup OpenGL Configuration!" << std::endl;
     abort();
   }
 
@@ -80,15 +80,19 @@ Viewer::~Viewer()
 
 bool Viewer::timeout_handler()
 {
-//  std::cerr << "tick" << std::endl;
+//  //std::cerr << "tick" << std::endl;
   if ( m_game->tick() == -1 || m_disconnect )
   {
-    std::cerr << "timeout_handler terminated" << std::endl;
+    //std::cerr << "timeout_handler terminated" << std::endl;
+    return false;
+  }
+  else if (m_disconnect)
+  {
     m_disconnect = false;
     sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
     Glib::signal_timeout().connect(tslot, m_speed[m_speed_mode]);
     invalidate();
-    return false;
+    return false;    
   }
   render_image(false, 0.0);
   return true;
@@ -98,7 +102,7 @@ void Viewer::set_speed_mode(SpeedMode mode)
 {
   m_disconnect = true;
   m_speed_mode = mode;
-//  std::cerr << "speed mode: " << m_speed_mode << ", speed: " << m_speed[m_speed_mode] << std::endl;
+//  //std::cerr << "speed mode: " << m_speed_mode << ", speed: " << m_speed[m_speed_mode] << std::endl;
 }
 
 Game* Viewer::get_game()
@@ -427,9 +431,9 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
 
 bool Viewer::on_button_press_event(GdkEventButton* event)
 {
-  std::cerr << "Stub: Button " << event->button << " pressed" << std::endl;
-  std::cerr << "Stub: x: " << event->x << " pressed" << std::endl;
-  std::cerr << "Stub: y: " << event->y << " pressed" << std::endl;
+  //std::cerr << "Stub: Button " << event->button << " pressed" << std::endl;
+  //std::cerr << "Stub: x: " << event->x << " pressed" << std::endl;
+  //std::cerr << "Stub: y: " << event->y << " pressed" << std::endl;
 
   m_button_number[event->button] = true;
   m_button_press_scale = m_button_press_angle[event->button] = event->x;
@@ -438,7 +442,7 @@ bool Viewer::on_button_press_event(GdkEventButton* event)
 
 bool Viewer::on_button_release_event(GdkEventButton* event)
 {
-  std::cerr << "Stub: Button " << event->button << " released" << std::endl;
+  //std::cerr << "Stub: Button " << event->button << " released" << std::endl;
   m_button_number[event->button] = false;
   return true;
 }
@@ -455,7 +459,7 @@ bool Viewer::render_image(bool useData, float data)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   int buf = m_doublebuffer;
-  std::cerr << buf << std::endl;
+  //std::cerr << buf << std::endl;
   if ( buf == -1 )
   {
     glDrawBuffer(GL_FRONT);
@@ -515,7 +519,7 @@ bool Viewer::render_image(bool useData, float data)
 
 bool Viewer::on_motion_notify_event(GdkEventMotion* event)
 {
-  std::cerr << "Stub: Motion at " << event->x << ", " << event->y << std::endl;
+  //std::cerr << "Stub: Motion at " << event->x << ", " << event->y << std::endl;
   return render_image(true,event->x);
 }
 
@@ -523,13 +527,13 @@ void Viewer::drawPieces()
 {
   int width = m_game->getWidth();
   int height = m_game->getHeight()+4; //TODO: Make it member variable??
-//  std::cerr << "w: " << width << ", h: " << height << std::endl;
+//  //std::cerr << "w: " << width << ", h: " << height << std::endl;
   for ( int r = 0; r < height; ++r ) {
     for ( int c = 0; c < width; ++c ) {
        int cindex = m_game->get(r,c);
        if ( cindex != -1 )
        {
-//         std::cerr << "(r,c): (" << r << "," << c << "), colorindex is " << cindex << std::endl; 
+//         //std::cerr << "(r,c): (" << r << "," << c << "), colorindex is " << cindex << std::endl; 
          drawCube((float)c,(float)r,0.0,cindex);
        }
     }
@@ -571,7 +575,7 @@ void Viewer::rotate_image(bool useData, float data)
   }
   if ( m_button_number[1] )
   {
-      std::cerr << "rotate: button 1" << std::endl;
+      //std::cerr << "rotate: button 1" << std::endl;
       glRotatef(howMuch_angle[1]+m_angle[0], 1.0f, 0.0f, 0.0f);
       glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
       glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
@@ -579,7 +583,7 @@ void Viewer::rotate_image(bool useData, float data)
   }
   if ( m_button_number[2] )
   {
-      std::cerr << "rotate: button 2" <<std::endl;
+      //std::cerr << "rotate: button 2" <<std::endl;
       glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
       glRotatef(howMuch_angle[2]+m_angle[1], 0.0f, 1.0f, 0.0f);
       glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
@@ -587,7 +591,7 @@ void Viewer::rotate_image(bool useData, float data)
   }
   if ( m_button_number[3] )
   {
-      std::cerr << "rotate: button 3" <<std::endl;
+      //std::cerr << "rotate: button 3" <<std::endl;
       glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
       glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
       glRotatef(howMuch_angle[3]+m_angle[2], 0.0f, 0.0f, 1.0f);

@@ -83,9 +83,9 @@ bool AppWindow::on_key_press_event( GdkEventKey *ev )
 
 	// An example key; delete and replace with the
 	// keys you want to process
-  std::cerr << "keyval: " << ev->keyval << std::endl;
+  //std::cerr << "keyval: " << ev->keyval << std::endl;
         if( ev->keyval == 't' ) {
-                std::cerr << "Hello!" << std::endl;
+                //std::cerr << "Hello!" << std::endl;
         }
         else if ( ev->keyval == GDK_KEY_Shift_L ||
                   ev->keyval == GDK_KEY_Shift_R )

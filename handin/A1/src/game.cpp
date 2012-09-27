@@ -283,7 +283,6 @@ void Game::placePiece(const Piece& p, int x, int y)
 	
 void Game::generateNewPiece() 
 {
-//  std::cerr << "generateNewPiece" << std::endl;
   piece_ = PIECES[ rand() % 7 ];
 
 

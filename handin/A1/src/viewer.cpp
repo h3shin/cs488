@@ -483,13 +483,20 @@ bool Viewer::on_button_press_event(GdkEventButton* event)
   //std::cerr << "Stub: x: " << event->x << " pressed" << std::endl;
   //std::cerr << "Stub: y: " << event->y << " pressed" << std::endl;
 
-  if ( m_button_number[event->button][0] != 0 ) // pressed already
+  if ( m_shift )
   {
-     m_button_number[event->button][0] = 0;
+     m_button_press_scale = event->x;
   }
   else
   {
-     m_button_number[event->button][0] = 1;
+    if ( m_button_number[event->button][0] != 0 ) // pressed already
+    {
+      m_button_number[event->button][0] = 0;
+    }
+    else
+    {
+      m_button_number[event->button][0] = 1;
+    }
   }
   return true;
 }
@@ -523,7 +530,7 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
     m_scale = ( howMuch_scale * m_scale < SCALE_MAX ? m_scale * howMuch_scale :
                                           SCALE_MAX );
     //std::cerr << "scale up-> howMuch_scale: "<< howMuch_scale << ", m_scale: " << m_scale << std::endl;
-    m_button_press_scale += howMuch_scale;
+    m_button_press_scale = event->x;
   }
   else if ( m_shift ) //scale down
   {
@@ -531,7 +538,7 @@ bool Viewer::on_motion_notify_event(GdkEventMotion* event)
     m_scale = ( howMuch_scale * m_scale > SCALE_MIN ? m_scale * howMuch_scale :
                                           SCALE_MIN );
     //std::cerr << "scale down-> howMuch_scale: "<< howMuch_scale << ", m_scale: " << m_scale << std::endl;
-    m_button_press_scale += howMuch_scale;
+    m_button_press_scale = event->x;
   }
   else if ( event->x > m_button_press_scale ) // rotate +
   {

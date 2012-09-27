@@ -21,7 +21,7 @@ Viewer::Viewer()
                                      Gdk::GL::MODE_DOUBLE);
   if (glconfig == 0) {
     // If we can't get this configuration, die
-    //std::cerr << "Unable to setup OpenGL Configuration!" << std::endl;
+    std::cerr << "Unable to setup OpenGL Configuration!" << std::endl;
     abort();
   }
 
@@ -42,26 +42,20 @@ Viewer::Viewer()
 
   m_angle[0] = m_angle[1] = m_angle[2] =
   m_button_press_angle[1] = m_button_press_angle[2] = m_button_press_angle[3] = 0.0;
-  m_button_number[1] = m_button_number[2] = m_button_number[3] = false;
+  m_button_number[1][0] = m_button_number[2][0] = m_button_number[3][0] = 0;
   m_shift = false;
   m_scale = 1.0;
   m_doublebuffer = 1;
   m_disconnect = false;
+  m_gameover = false;
 
   m_speed[SLOW] = 500, m_speed[MEDIUM] = 300, m_speed[FAST] = 150;
   m_speed_mode = SLOW;
   sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
   Glib::signal_timeout().connect(tslot, m_speed[m_speed_mode]);
-/*
-  m_color[0][0] = 1.0, m_color[0][1] = 0.0, m_color[0][2] = 0.0; //red
-  m_color[1][0] = 0.0, m_color[1][1] = 1.0, m_color[1][2] = 0.0; //green
-  m_color[2][0] = 0.0, m_color[2][1] = 0.0, m_color[2][2] = 1.0; //blue
-  m_color[3][0] = 1.0, m_color[3][1] = 0.2, m_color[3][2] = 0.0; //orange
-  m_color[4][0] = 1.0, m_color[4][1] = 0.0, m_color[4][2] = 0.4; //pink
-  m_color[5][0] = 0.4, m_color[5][1] = 0.0, m_color[5][2] = 0.4; //purple
-  m_color[6][0] = 1.0, m_color[6][1] = 1.0, m_color[6][2] = 0.0; //yellow
-  m_color[7][0] = 0.2, m_color[7][1] = 0.0, m_color[7][2] = 0.0; //brown
-*/
+  sigc::slot<bool> rslot = sigc::mem_fun(*this, &Viewer::render_image);
+  Glib::signal_timeout().connect(rslot, 50);
+
   m_color[0][0] = 0.941, m_color[0][1] = 0.502, m_color[0][2] = 0.502; //light coral
   m_color[1][0] = 1.0, m_color[1][1] = 0.412, m_color[1][2] = 0.706; //hot pink
   m_color[2][0] = 0.863, m_color[2][1] = 0.078, m_color[2][2] = 0.235; //crimson
@@ -80,21 +74,30 @@ Viewer::~Viewer()
 
 bool Viewer::timeout_handler()
 {
-//  //std::cerr << "tick" << std::endl;
+//  std::cerr << "tick" << std::endl;
   if ( m_game->tick() == -1 )
   {
-    //std::cerr << "timeout_handler terminated" << std::endl;
+//    std::cerr << "timeout_handler terminated" << std::endl;
+    m_gameover = true;
+    ColorMode prev_state = m_color_mode;
+    m_color_mode = CHRISTMAS;
+    for ( int i = 0; i < 100; ++i )
+    {
+      render_image();
+      usleep(500);
+    }
+    m_color_mode = prev_state;
     return false;
   }
-  else if (m_disconnect)
+  else if ( m_disconnect )
   {
     m_disconnect = false;
     sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
     Glib::signal_timeout().connect(tslot, m_speed[m_speed_mode]);
     invalidate();
-    return false;    
+    return false;
   }
-  render_image(false, 0.0);
+//  render_image(false, 0.0);
   return true;
 }
 
@@ -102,7 +105,7 @@ void Viewer::set_speed_mode(SpeedMode mode)
 {
   m_disconnect = true;
   m_speed_mode = mode;
-//  //std::cerr << "speed mode: " << m_speed_mode << ", speed: " << m_speed[m_speed_mode] << std::endl;
+//  std::cerr << "speed mode: " << m_speed_mode << ", speed: " << m_speed[m_speed_mode] << std::endl;
 }
 
 Game* Viewer::get_game()
@@ -302,105 +305,14 @@ void Viewer::reset_game()
 {
   m_angle[0] = m_angle[1] = m_angle[2] =
   m_button_press_angle[1] = m_button_press_angle[2] = m_button_press_angle[3] = 0.0;
-  m_button_number[1] = m_button_number[2] = m_button_number[3] = false;
+  m_button_number[1][0] = m_button_number[2][0] = m_button_number[3][0] = 0;
   m_shift = false;
   m_scale = 1.0;
 }
 
 bool Viewer::on_expose_event(GdkEventExpose* event)
 {
-/*
-  Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
-
-  if (!gldrawable) return false;
-
-  if (!gldrawable->gl_begin(get_gl_context()))
-    return false;
-
-  // Clear the screen
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  // Modify the current projection matrix so that we move the 
-  // camera away from the origin.  We'll draw the game at the
-  // origin, and we need to back up to see it.
-
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix();
-  glTranslated(0.0, 0.0, -40.0);
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  // Not implemented: set up lighting (if necessary)
-
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_COLOR_MATERIAL);
-  glEnable(GL_NORMALIZE);
-
-  //Add ambient light
-  GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
-  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
-
-  // Not implemented: scale and rotate the scene
-
-  // You'll be drawing unit cubes, so the game will have width
-  // 10 and height 24 (game = 20, stripe = 4).  Let's translate
-  // the game so that we can draw it starting at (0,0) but have
-  // it appear centered in the window.
-  glTranslated(-5.0, -12.0, 0.0);
-
-  // Not implemented: actually draw the current game state.
-  // Here's some test code that draws red triangles at the
-  // corners of the game board.
-
-  glColor3d(1.0, 0.0, 0.0);
-  glBegin(GL_TRIANGLES);
-  glVertex3d(0.0, 0.0, 0.0);
-  glVertex3d(1.0, 0.0, 0.0);
-  glVertex3d(0.0, 1.0, 0.0);
-  glVertex3d(9.0, 0.0, 0.0);
-  glVertex3d(10.0, 0.0, 0.0);
-  glVertex3d(10.0, 1.0, 0.0);
-  glVertex3d(0.0, 19.0, 0.0);
-  glVertex3d(1.0, 20.0, 0.0);
-  glVertex3d(0.0, 20.0, 0.0);
-  glVertex3d(10.0, 19.0, 0.0);
-  glVertex3d(10.0, 20.0, 0.0);
-  glVertex3d(9.0, 20.0, 0.0);
-  glEnd();
-
-  // We pushed a matrix onto the PROJECTION stack earlier, we 
-  // need to pop it.
-
-  // Draw wall
-//  m_color_mode = FACE;
-//  glRotatef(-20.0f, 0.0f, 1.0f, 0.0f);
-//  drawCube(0.0,0.0,0.0);
-
-//  glScalef(0.5f,0.5f,0.5f);
-
-  glColor3f(0.4f, 0.0f, 0.0f);
-  for ( int i = 0; i < 10; ++i )
-  {
-      drawCube((float)i,0.0,0.0);
-  }
-  for ( int i = 1; i < 20; ++i )
-  {
-      drawCube(0.0,(float)i,0.0);
-      drawCube(9.0,(float)i,0.0);
-  }
-
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-
-  // Swap the contents of the front and back buffers so we see what we
-  // just drew. This should only be done if double buffering is enabled.
-  gldrawable->swap_buffers();
-
-  gldrawable->gl_end();
-*/
-  return render_image(false, 0.0);
+  return true;
 }
 
 bool Viewer::on_configure_event(GdkEventConfigure* event)
@@ -429,25 +341,7 @@ bool Viewer::on_configure_event(GdkEventConfigure* event)
   return true;
 }
 
-bool Viewer::on_button_press_event(GdkEventButton* event)
-{
-  //std::cerr << "Stub: Button " << event->button << " pressed" << std::endl;
-  //std::cerr << "Stub: x: " << event->x << " pressed" << std::endl;
-  //std::cerr << "Stub: y: " << event->y << " pressed" << std::endl;
-
-  m_button_number[event->button] = true;
-  m_button_press_scale = m_button_press_angle[event->button] = event->x;
-  return true;
-}
-
-bool Viewer::on_button_release_event(GdkEventButton* event)
-{
-  //std::cerr << "Stub: Button " << event->button << " released" << std::endl;
-  m_button_number[event->button] = false;
-  return true;
-}
-
-bool Viewer::render_image(bool useData, float data)
+bool Viewer::render_image()//bool useData, float data)
 {
   Glib::RefPtr<Gdk::GL::Drawable> gldrawable = get_gl_drawable();
 
@@ -459,7 +353,7 @@ bool Viewer::render_image(bool useData, float data)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   int buf = m_doublebuffer;
-  //std::cerr << buf << std::endl;
+  //  std::cerr << buf << std::endl;
   if ( buf == -1 )
   {
     glDrawBuffer(GL_FRONT);
@@ -493,8 +387,8 @@ bool Viewer::render_image(bool useData, float data)
   // it appear centered in the window.
   glTranslated(-5.0, -12.0, 0.0);
 
-  rotate_image(useData, data);
-  scale_image(useData, data);
+  rotate_image();//useData, data);
+  scale_image();//useData, data);
   drawWall();
   drawPieces();
 
@@ -517,23 +411,17 @@ bool Viewer::render_image(bool useData, float data)
   return true;
 }
 
-bool Viewer::on_motion_notify_event(GdkEventMotion* event)
-{
-  //std::cerr << "Stub: Motion at " << event->x << ", " << event->y << std::endl;
-  return render_image(true,event->x);
-}
-
 void Viewer::drawPieces()
 {
   int width = m_game->getWidth();
   int height = m_game->getHeight()+4; //TODO: Make it member variable??
-//  //std::cerr << "w: " << width << ", h: " << height << std::endl;
+//  std::cerr << "w: " << width << ", h: " << height << std::endl;
   for ( int r = 0; r < height; ++r ) {
     for ( int c = 0; c < width; ++c ) {
        int cindex = m_game->get(r,c);
        if ( cindex != -1 )
        {
-//         //std::cerr << "(r,c): (" << r << "," << c << "), colorindex is " << cindex << std::endl; 
+//         std::cerr << "(r,c): (" << r << "," << c << "), colorindex is " << cindex << std::endl; 
          drawCube((float)c,(float)r,0.0,cindex);
        }
     }
@@ -553,76 +441,141 @@ void Viewer::drawWall()
   }
 }
 
-void Viewer::rotate_image(bool useData, float data)
+void Viewer::rotate_image()//bool useData, float data)
 {
-  float howMuch_angle[4];
-  for ( int i = 1; i < 4; ++i ) howMuch_angle[i] = 0.0;
-  if ( ! m_shift && useData ) //rotation
-  {
-    for ( int i = 1; i < 4; ++i )
-    {
-      if ( m_button_number[i] ) howMuch_angle[i] = data - m_button_press_angle[i];
-    }
-  }
- 
- //when useData is off, it still has to rotate based on the previous record
- //by doing this once, it updates all rotations and howMuch_angle is 0
-  if ( !useData )
-  {
+      if ( m_button_number[1][0] == 5 )
+      {
+        m_angle[0]--;
+      }
+      else if ( m_button_number[1][0] == 6 )
+      {
+        m_angle[0]++;
+      }
+      if ( m_button_number[2][0] == 5 )
+      {
+        m_angle[1]--;
+      }
+      else if ( m_button_number[2][0] == 6 )
+      {
+        m_angle[1]++;
+      }
+      if ( m_button_number[3][0] == 5 )
+      {
+        m_angle[2]--;
+      }
+      else if ( m_button_number[3][0] == 6 )
+      {
+        m_angle[2]++;
+      }
       glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
       glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
       glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
-  }
-  if ( m_button_number[1] )
-  {
-      //std::cerr << "rotate: button 1" << std::endl;
-      glRotatef(howMuch_angle[1]+m_angle[0], 1.0f, 0.0f, 0.0f);
-      glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
-      glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
-      m_angle[0] += howMuch_angle[1];
-  }
-  if ( m_button_number[2] )
-  {
-      //std::cerr << "rotate: button 2" <<std::endl;
-      glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
-      glRotatef(howMuch_angle[2]+m_angle[1], 0.0f, 1.0f, 0.0f);
-      glRotatef(m_angle[2], 0.0f, 0.0f, 1.0f);
-      m_angle[1] += howMuch_angle[2];
-  }
-  if ( m_button_number[3] )
-  {
-      //std::cerr << "rotate: button 3" <<std::endl;
-      glRotatef(m_angle[0], 1.0f, 0.0f, 0.0f);
-      glRotatef(m_angle[1], 0.0f, 1.0f, 0.0f);
-      glRotatef(howMuch_angle[3]+m_angle[2], 0.0f, 0.0f, 1.0f);
-      m_angle[2] += howMuch_angle[3];
-  }
-
 }
 
-void Viewer::scale_image(bool useData, float data)
+void Viewer::scale_image()//bool useData, float data)
 {
-  float howMuch_scale = 1.0;
-  if ( m_shift && m_button_press_scale > data && useData) // scale down
+  glScalef(m_scale,m_scale,m_scale);
+}
+
+bool Viewer::on_button_press_event(GdkEventButton* event)
+{
+  //std::cerr << "Stub: Button " << event->button << " pressed" << std::endl;
+  //std::cerr << "Stub: x: " << event->x << " pressed" << std::endl;
+  //std::cerr << "Stub: y: " << event->y << " pressed" << std::endl;
+
+  if ( m_button_number[event->button][0] != 0 ) // pressed already
   {
-    howMuch_scale = std::max ( 0.01, 1 - ( m_button_press_scale - data ) / 100.0 );
-    m_scale = ( howMuch_scale * m_scale > SCALE_MIN ? m_scale * howMuch_scale :
-                                          SCALE_MIN );
+     m_button_number[event->button][0] = 0;
   }
-  else if ( m_shift && data != m_button_press_scale && useData)// scale up
+  else
   {
-    howMuch_scale = 1.0 + ( data - m_button_press_scale ) / 50.0;
+     m_button_number[event->button][0] = 1;
+  }
+  return true;
+}
+
+bool Viewer::on_button_release_event(GdkEventButton* event)
+{
+  //std::cerr << "Stub: Button " << event->button << " released" << std::endl;
+  if ( m_button_number[event->button][0] == 1 )
+  {
+    m_button_number[event->button][0] = 4;
+  }
+  else if ( m_button_number[event->button][0] == 2 )
+  {
+    m_button_number[event->button][0] = 5;
+  }
+  else if ( m_button_number[event->button][0] == 3 )
+  {
+    m_button_number[event->button][0] = 6;
+  }
+
+  return true;
+}
+
+bool Viewer::on_motion_notify_event(GdkEventMotion* event)
+{
+  //std::cerr << "Stub: Motion at " << event->x << ", " << event->y << std::endl;
+
+  if ( m_shift && event->x > m_button_press_scale ) //scale up
+  {
+    float howMuch_scale = 1.0 + ( event->x - m_button_press_scale ) / 50.0;
     m_scale = ( howMuch_scale * m_scale < SCALE_MAX ? m_scale * howMuch_scale :
                                           SCALE_MAX );
+    //std::cerr << "scale up-> howMuch_scale: "<< howMuch_scale << ", m_scale: " << m_scale << std::endl;
+    m_button_press_scale += howMuch_scale;
   }
-  glScalef(m_scale,m_scale,m_scale);
-
-  if ( useData )
+  else if ( m_shift ) //scale down
   {
-    m_button_press_scale = data;
-    for ( int i = 1; i < 4; ++i )
-    {
-      if ( m_button_number[i] ) m_button_press_angle[i] = data;
-    }
+    float howMuch_scale = std::max ( 0.01, 1 - ( m_button_press_scale - event->x ) / 100.0 );
+    m_scale = ( howMuch_scale * m_scale > SCALE_MIN ? m_scale * howMuch_scale :
+                                          SCALE_MIN );
+    //std::cerr << "scale down-> howMuch_scale: "<< howMuch_scale << ", m_scale: " << m_scale << std::endl;
+    m_button_press_scale += howMuch_scale;
   }
+  else if ( event->x > m_button_press_scale ) // rotate +
+  {
+    if ( m_button_number[1][0] == 1 || m_button_number[1][0] == 2 || m_button_number[1][0] == 3 )
+    {
+      //std::cerr << "rotate: button 1" << std::endl;
+      m_button_number[1][0] = 3;
+      m_angle[0]++;
+    }
+    if ( m_button_number[2][0] == 1 || m_button_number[2][0] == 2 || m_button_number[2][0] == 3 )
+    {
+      //std::cerr << "rotate: button 2" <<std::endl;
+      m_button_number[2][0] = 3;
+      m_angle[1]++;
+    }
+    if ( m_button_number[3][0] == 1 || m_button_number[3][0] == 2 || m_button_number[3][0] == 3 )
+    {
+      //std::cerr << "rotate: button 3" <<std::endl;
+      m_button_number[3][0] = 3;
+      m_angle[2]++;
+    }
+    m_button_press_scale = event->x;
+  }
+  else // rotate -
+  {
+    if ( m_button_number[1][0] == 1 || m_button_number[1][0] == 2 || m_button_number[1][0] == 3 )
+    {
+      //std::cerr << "rotate: button 1" << std::endl;
+      m_button_number[1][0] = 2;
+      m_angle[0]--;
+    }
+    if ( m_button_number[2][0] == 1 || m_button_number[2][0] == 2 || m_button_number[2][0] == 3 )
+    {
+      //std::cerr << "rotate: button 2" <<std::endl;
+      m_button_number[2][0] = 2;
+      m_angle[1]--;
+    }
+    if ( m_button_number[3][0] == 1 || m_button_number[3][0] == 2 || m_button_number[3][0] == 3 )
+    {
+      //std::cerr << "rotate: button 3" <<std::endl;
+      m_button_number[3][0] = 2;
+      m_angle[2]--;
+    }
+    m_button_press_scale = event->x;
+  }
+  return true;
 }

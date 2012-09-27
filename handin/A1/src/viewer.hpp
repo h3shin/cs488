@@ -59,9 +59,9 @@ protected:
 
   void drawCube(float x, float y, float z, int cindex);
   void drawVertex(int posn, float x, float y, float z);
-  bool render_image(bool useData, float data);
-  void rotate_image(bool useData, float data);
-  void scale_image(bool useData, float data);
+  bool render_image();
+  void rotate_image();
+  void scale_image();
   void drawPieces();
   void drawWall();
   bool timeout_handler();
@@ -72,18 +72,23 @@ private:
   SpeedMode m_speed_mode;
   float m_button_press_angle[4]; //[0] not used
   float m_button_press_scale;
-//  float m_motion_notify;
-  bool m_button_number[4]; //[0] not used
+  //m_button_number<*,0> if not pressed 
+  //m_button_number<*,1> pressed but direction non-specified
+  //m_button_number<*,2> pressed and negative direction
+  //m_button_number<*,3> pressed and positive direction
+  //m_button_number<*,4> released and direction non-specified
+  //m_button_number<*,5> released and negative direction
+  //m_button_number<*,6> released and positive direction
+  int m_button_number[4][1]; //[0][*] not used
   float m_angle[3];
   bool m_shift;
   float m_scale;
   int m_doublebuffer;
-//  std::list<Piece*> m_pieces;
   Game *m_game;
   float m_color[8][3];
   bool m_disconnect;
   int m_speed[3];
-  //  int m_multicolor[8][5];
+  bool m_gameover;
 };
 
 #endif

@@ -68,10 +68,6 @@ protected:
 
 private:
 
-  ColorMode m_color_mode;
-  SpeedMode m_speed_mode;
-  float m_button_press_angle[4]; //[0] not used
-  float m_button_press_scale;
   //m_button_number<*,0> if not pressed 
   //m_button_number<*,1> pressed but direction non-specified
   //m_button_number<*,2> pressed and negative direction
@@ -80,6 +76,10 @@ private:
   //m_button_number<*,5> released and negative direction
   //m_button_number<*,6> released and positive direction
   int m_button_number[4][1]; //[0][*] not used
+  ColorMode m_color_mode;
+  SpeedMode m_speed_mode;
+  float m_button_press_angle[4]; //[0] not used
+  float m_button_press_scale;
   float m_angle[3];
   bool m_shift;
   float m_scale;

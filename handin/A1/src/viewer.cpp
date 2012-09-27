@@ -41,11 +41,11 @@ Viewer::Viewer()
   m_color_mode = WIRE_FRAME;
 
   m_angle[0] = m_angle[1] = m_angle[2] =
-  m_button_press_angle[1] = m_button_press_angle[2] = m_button_press_angle[3] = 0.0;
-  m_button_number[1][0] = m_button_number[2][0] = m_button_number[3][0] = 0;
+  m_button_press_angle[1] = m_button_press_angle[2] = m_button_press_angle[3] =
+  m_button_number[1][0] = m_button_number[2][0] = m_button_number[3][0] = 0.0;
   m_shift = false;
   m_scale = 1.0;
-  m_doublebuffer = 1;
+  m_doublebuffer = -1;
   m_disconnect = false;
   m_gameover = false;
 

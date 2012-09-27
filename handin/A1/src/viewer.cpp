@@ -81,7 +81,7 @@ Viewer::~Viewer()
 bool Viewer::timeout_handler()
 {
 //  //std::cerr << "tick" << std::endl;
-  if ( m_game->tick() == -1 || m_disconnect )
+  if ( m_game->tick() == -1 )
   {
     //std::cerr << "timeout_handler terminated" << std::endl;
     return false;

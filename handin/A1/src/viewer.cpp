@@ -298,6 +298,13 @@ void Viewer::drawCube(float x, float y, float z, int cindex)
 void Viewer::new_game()
 {
   m_game->reset();
+  if ( m_gameover )
+  {
+    m_gameover = false;
+    m_disconnect = false;
+    sigc::slot<bool> tslot = sigc::mem_fun(*this, &Viewer::timeout_handler);
+    Glib::signal_timeout().connect(tslot, m_speed[m_speed_mode]);
+  }
   invalidate();
 }
 
